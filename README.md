@@ -1,0 +1,60 @@
+# LightsUp
+
+A native macOS menu bar app that makes missing meetings impossible.
+
+## What it does
+
+LightsUp sits quietly in your menu bar and syncs with your calendar. The moment a meeting starts,
+it takes over your entire screen with an unavoidable full-screen notification. No more missing
+meetings because you were deep in focus and dismissed a tiny notification.
+
+**Core features (planned):**
+- Menu bar icon with dropdown for quick access and settings
+- Calendar sync via EventKit (Apple Calendar / Google Calendar)
+- Full-screen takeover when a meeting starts — covers all connected displays
+- Click-through to join the meeting directly from the takeover screen
+- Regular app window accessible from the menu bar for settings and preferences
+
+## The problem it solves
+
+Remote and hybrid professionals miss meetings constantly — not because they don't care, but because
+small notification banners are too easy to miss when you're in deep focus. LightsUp makes that
+impossible.
+
+## Tech stack
+
+- **Language:** Swift
+- **UI:** SwiftUI + AppKit (NSWindow for full-screen takeover)
+- **Calendar:** EventKit
+- **Platform:** macOS 26 (Tahoe) and above
+- **Distribution:** Direct download (notarized, outside App Store)
+
+## Project structure
+
+```
+LightsUp/
+├── LightsUp/               # Main app source
+│   ├── LightsUpApp.swift   # App entry point, MenuBarExtra setup
+│   └── ContentView.swift   # Menu bar dropdown UI
+├── LightsUpTests/          # Unit tests
+├── LightsUpUITests/        # UI tests
+└── LightsUp.xcodeproj/     # Xcode project
+```
+
+## Project configuration
+
+- App Sandbox: **disabled** (required for full-screen takeover and direct distribution)
+- Dock icon: **hidden** (`LSUIElement = YES`) — pure menu bar app
+- Deployment target: **macOS 26.0**
+- Bundle ID: `ohwow.LightsUp`
+
+## Status
+
+- [ ] Project scaffolding
+- [ ] Menu bar icon + dropdown UI
+- [ ] EventKit calendar integration
+- [ ] Meeting detection and scheduling
+- [ ] Full-screen takeover window
+- [ ] Join meeting action from takeover screen
+- [ ] Settings window
+- [ ] Notarization + distribution setup
