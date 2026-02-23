@@ -9,7 +9,6 @@ import SwiftUI
 
 struct OnboardingView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @Environment(\.dismiss) private var dismiss
     @State private var step = 0
 
     let calendarManager: CalendarManager
@@ -182,8 +181,21 @@ struct OnboardingView: View {
     }
 
     private func complete() {
+        print("🔍 complete() called")
+        print("🔍 Setting hasCompletedOnboarding to true")
         hasCompletedOnboarding = true
+        
+        // Also set it directly in UserDefaults as a backup
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.synchronize()
+        
+        print("🔍 UserDefaults value: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
+        
         NSApp.setActivationPolicy(.accessory)
-        dismiss()
+        
+        // Close the onboarding window
+        if let window = NSApp.windows.first(where: { $0.title == "Welcome to LightsUp" }) {
+            window.close()
+        }
     }
 }

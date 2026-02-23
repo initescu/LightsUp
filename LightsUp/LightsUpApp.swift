@@ -6,18 +6,45 @@
 import AppKit
 import SwiftUI
 
-@main
-struct LightsUpApp: App {
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @State private var calendarManager = CalendarManager()
-
-    init() {
-        // LSUIElement=YES sets activation policy to .accessory before any code runs,
-        // which blocks all window display at launch. Temporarily elevate to .regular
-        // so the onboarding Window scene can appear. Restored to .accessory on completion.
+class AppDelegate: NSObject, NSApplicationDelegate {
+    var onboardingWindow: NSWindow?
+    let calendarManager = CalendarManager()
+    
+    func applicationDidFinishLaunching(_ notification: Notification) {
         if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
             NSApp.setActivationPolicy(.regular)
+            showOnboarding()
         }
+    }
+    
+    func showOnboarding() {
+        let contentView = OnboardingView(calendarManager: calendarManager)
+        let hostingController = NSHostingController(rootView: contentView)
+        
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 360),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Welcome to LightsUp"
+        window.contentViewController = hostingController
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.makeKeyAndOrderFront(nil)
+        
+        NSApp.activate(ignoringOtherApps: true)
+        
+        self.onboardingWindow = window
+    }
+}
+
+@main
+struct LightsUpApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
+    var calendarManager: CalendarManager {
+        appDelegate.calendarManager
     }
 
     var body: some Scene {
@@ -26,12 +53,6 @@ struct LightsUpApp: App {
                 .environment(calendarManager)
         }
         .menuBarExtraStyle(.window)
-
-        Window("Welcome to LightsUp", id: "onboarding") {
-            OnboardingView(calendarManager: calendarManager)
-        }
-        .windowResizability(.contentSize)
-        .defaultLaunchBehavior(hasCompletedOnboarding ? .suppressed : .presented)
 
         Settings {
             SettingsView()
