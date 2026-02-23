@@ -4,19 +4,27 @@
 //
 
 import AppKit
+import EventKit
 import SwiftUI
 
 final class PopupWindowController: NSObject {
 
     private var window: NSWindow?
     private var keyMonitor: Any?
+    private weak var calendarManager: CalendarManager?
+
+    init(calendarManager: CalendarManager) {
+        self.calendarManager = calendarManager
+        super.init()
+    }
 
     func show() {
         guard window == nil else { return }
 
         guard let screen = NSScreen.main else { return }
 
-        let popupView = FullScreenPopupView { [weak self] in
+        let event = calendarManager?.nearestUpcomingEvent()
+        let popupView = FullScreenPopupView(event: event) { [weak self] in
             self?.dismiss()
         }
 

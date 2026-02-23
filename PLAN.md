@@ -147,8 +147,8 @@ Lint config: `.swiftlint.yml` — catches crashes and dead code only (`force_cas
 - [x] **Step 2** — Menu bar shell *(F1)*
 - [x] **Step 3** — Full-screen popup mechanism *(F2)*
 - [x] **Step 4** — Onboarding flow *(F3)*
-- [ ] **Step 5** — CalendarManager + Settings *(F4 + F5)*
-- [ ] **Step 6** — Wire popup to real data *(F6)*
+- [x] **Step 5** — CalendarManager + Settings *(F4 + F5)*
+- [x] **Step 6** — Wire popup to real data *(F6)*
 
 ---
 
