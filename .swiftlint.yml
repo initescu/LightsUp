@@ -1,0 +1,10 @@
+# Minimal lint config — catches crashes and dead code, ignores style.
+included:
+  - LightsUp
+
+only_rules:
+  - force_cast              # runtime crash
+  - force_try               # runtime crash
+  - force_unwrapping        # runtime crash
+  - unused_closure_parameter # logic error (likely a bug)
+  - unused_import           # dead code

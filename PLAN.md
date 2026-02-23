@@ -125,6 +125,20 @@ Simple list of all available calendars with toggle rows. Each row shows the cale
 
 ---
 
+## Development Loop
+
+After every implementation step, run before stopping:
+
+```bash
+./scripts/verify.sh
+```
+
+Must exit with "All checks passed." (0 lint violations, BUILD SUCCEEDED) before handing off for manual validation.
+
+Lint config: `.swiftlint.yml` — catches crashes and dead code only (`force_cast`, `force_try`, `force_unwrapping`, `unused_closure_parameter`, `unused_import`).
+
+---
+
 ## Implementation Plan — Milestone 1
 
 ### Progress
@@ -132,7 +146,7 @@ Simple list of all available calendars with toggle rows. Each row shows the cale
 - [x] **Step 1** — Xcode project setup
 - [x] **Step 2** — Menu bar shell *(F1)*
 - [x] **Step 3** — Full-screen popup mechanism *(F2)*
-- [ ] **Step 4** — Onboarding flow *(F3)*
+- [x] **Step 4** — Onboarding flow *(F3)*
 - [ ] **Step 5** — CalendarManager + Settings *(F4 + F5)*
 - [ ] **Step 6** — Wire popup to real data *(F6)*
 
