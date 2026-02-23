@@ -9,8 +9,15 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
     var onboardingWindow: NSWindow?
     let calendarManager = CalendarManager()
+    var popupController: PopupWindowController?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        popupController = PopupWindowController(calendarManager: calendarManager)
+        
+        calendarManager.onEventStart = { [weak self] _ in
+            self?.popupController?.show()
+        }
+        
         if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
             NSApp.setActivationPolicy(.regular)
             showOnboarding()

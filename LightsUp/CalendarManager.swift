@@ -21,7 +21,11 @@ final class CalendarManager {
         }
     }
 
+    var onEventStart: ((EKEvent) -> Void)?
+
     private let store = EKEventStore()
+    private var monitorTimer: Timer?
+    private var lastCheckedEventIDs = Set<String>()
 
     init() {
         // Load persisted selection. Direct assignment in init does not trigger didSet.
@@ -34,6 +38,7 @@ final class CalendarManager {
             fetchEvents()
         }
         observeStoreChanges()
+        startMonitoring()
     }
 
     func requestAccess() async {
@@ -103,6 +108,32 @@ final class CalendarManager {
                 guard let self else { return }
                 self.loadCalendars()
                 self.fetchEvents()
+            }
+        }
+    }
+
+    private func startMonitoring() {
+        monitorTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.checkForEventStarts()
+            }
+        }
+    }
+
+    private func checkForEventStarts() {
+        guard authorizationStatus == .fullAccess else { return }
+
+        let now = Date()
+
+        for event in todayEvents {
+            guard let eventID = event.eventIdentifier else { continue }
+
+            let timeSinceStart = now.timeIntervalSince(event.startDate)
+            let isJustStarted = timeSinceStart >= 0 && timeSinceStart < 10
+
+            if isJustStarted && !lastCheckedEventIDs.contains(eventID) {
+                onEventStart?(event)
+                lastCheckedEventIDs.insert(eventID)
             }
         }
     }
