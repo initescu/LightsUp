@@ -4,10 +4,13 @@
 //
 
 import EventKit
+import ServiceManagement
 import SwiftUI
 
 struct SettingsView: View {
     @Environment(CalendarManager.self) private var calendarManager
+    @AppStorage("menuBarFormat") private var menuBarFormat: MenuBarFormat = .medium
+    @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -31,9 +34,51 @@ struct SettingsView: View {
                     calendarRow(calendar)
                 }
                 .listStyle(.plain)
+                .frame(height: 180)
             }
+
+            Divider()
+            Text("Menu Bar")
+                .font(.system(.headline, design: .monospaced))
+                .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 8)
+            Divider()
+            HStack {
+                Text("Format")
+                    .font(.system(.body, design: .monospaced))
+                Spacer()
+                Picker("", selection: $menuBarFormat) {
+                    ForEach(MenuBarFormat.allCases) { fmt in
+                        Text(fmt.displayName).tag(fmt)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 220)
+            }
+            .padding(.horizontal, 16).padding(.vertical, 8)
+
+            Divider()
+            Text("General")
+                .font(.system(.headline, design: .monospaced))
+                .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 8)
+            Divider()
+            HStack {
+                Text("Launch at Login")
+                    .font(.system(.body, design: .monospaced))
+                Spacer()
+                Toggle("", isOn: $launchAtLogin)
+                    .labelsHidden()
+                    .onChange(of: launchAtLogin) { _, newValue in
+                        do {
+                            if newValue { try SMAppService.mainApp.register() }
+                            else { try SMAppService.mainApp.unregister() }
+                        } catch {
+                            launchAtLogin = SMAppService.mainApp.status == .enabled
+                        }
+                    }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 8)
         }
-        .frame(width: 320, height: 300)
+        .frame(width: 320, height: 440)
         .onAppear {
             NSApp.activate()
         }

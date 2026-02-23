@@ -55,8 +55,11 @@ struct LightsUpApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("LightsUp", systemImage: "lightbulb") {
+        MenuBarExtra {
             ContentView()
+                .environment(calendarManager)
+        } label: {
+            MenuBarLabelView()
                 .environment(calendarManager)
         }
         .menuBarExtraStyle(.window)

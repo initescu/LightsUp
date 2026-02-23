@@ -106,6 +106,7 @@ final class CalendarManager {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
+                self.store.reset()
                 self.loadCalendars()
                 self.fetchEvents()
             }
@@ -113,7 +114,7 @@ final class CalendarManager {
     }
 
     private func startMonitoring() {
-        monitorTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+        monitorTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.checkForEventStarts()
             }
