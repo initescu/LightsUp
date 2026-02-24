@@ -12,7 +12,7 @@ Milestone 2 shipped a live menu bar label, instant calendar refresh, and launch 
 
 ## Features
 
-### F1 · Calendar sync speed fix
+### F1 · Calendar sync speed fix ✅ DONE
 
 **Root cause:** `fetchEvents()` is called in three places: `init`, `enabledCalendarIDs.didSet`, and the `EKEventStoreChanged` notification handler. The 5 s monitoring timer (`startMonitoring`) only calls `checkForEventStarts()` — it never refreshes event data. If the `EKEventStoreChanged` notification arrives late (which happens — Apple Calendar's local change propagation can take several seconds), stale data can persist much longer than 5 s.
 
@@ -90,11 +90,13 @@ Note: `checkForEventStarts()` continues to run last — it reads from the freshl
 
 ## Verification
 
-### F1 — Calendar sync speed
+### F1 — Calendar sync speed ✅ VALIDATED
 1. Build & run.
 2. Open Calendar.app → edit an event title for a meeting today.
 3. Click the LightsUp menu bar icon → dropdown should show the updated title within ≤ 5 s (no app restart needed).
 4. Add a new event for today → appears in dropdown within ≤ 5 s.
+
+**Note:** Required an additional fix beyond the plan — `ContentView` needed a 5 s `Timer.publish` ticker (same pattern as `MenuBarLabelView`) because `@Observable` propagation to `MenuBarExtra` window content is unreliable on macOS 26. The ticker forces re-renders so the dropdown always reflects fresh data.
 
 ### F2 — Distribution build
 1. Run `bash scripts/build-release.sh 1.0.0` from repo root.
