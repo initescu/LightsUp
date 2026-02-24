@@ -66,6 +66,7 @@ struct CopyIconButton: View {
 struct EventRowView: View {
     let event: EKEvent
     let isOngoing: Bool
+    @State private var titleHovered = false
 
     private var timeRange: String {
         "\(event.startDate.formatted(date: .omitted, time: .shortened)) – " +
@@ -116,6 +117,29 @@ struct EventRowView: View {
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.secondary)
             }
+            .onHover { titleHovered = $0 }
+            .overlay(alignment: .topLeading) {
+                if titleHovered {
+                    Text(event.title ?? "(No title)")
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .frame(maxWidth: 240, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color(NSColor.windowBackgroundColor))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                                )
+                                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        )
+                        .fixedSize(horizontal: false, vertical: true)
+                        .offset(y: -36)
+                        .allowsHitTesting(false)
+                }
+            }
 
             Spacer()
 
@@ -138,6 +162,7 @@ struct EventRowView: View {
         }
         .padding(.vertical, 5)
         .background(isOngoing ? Color.orange.opacity(0.12) : Color.clear)
+        .zIndex(titleHovered ? 1 : 0)
     }
 }
 
@@ -185,7 +210,7 @@ struct ContentView: View {
                 if calendarManager.todayEvents.isEmpty {
                     emptyLabel("No upcoming events today")
                 } else {
-                    ForEach(calendarManager.todayEvents, id: \.eventIdentifier) { event in
+                    ForEach(calendarManager.todayEvents, id: \.calendarItemIdentifier) { event in
                         EventRowView(event: event, isOngoing: event.startDate <= now && event.endDate > now)
                     }
                 }
@@ -198,7 +223,7 @@ struct ContentView: View {
                 if calendarManager.tomorrowEvents.isEmpty {
                     emptyLabel("No events tomorrow")
                 } else {
-                    ForEach(calendarManager.tomorrowEvents, id: \.eventIdentifier) { event in
+                    ForEach(calendarManager.tomorrowEvents, id: \.calendarItemIdentifier) { event in
                         EventRowView(event: event, isOngoing: event.startDate <= now && event.endDate > now)
                     }
                 }

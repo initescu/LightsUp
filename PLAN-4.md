@@ -87,6 +87,35 @@ The Dismiss button code is copy-pasted in both branches of `if let event`. Extra
 - Test compact/medium/large format strings for events with known start dates
 - Test `countdownString` for various time deltas (hours+minutes, minutes only, "Now", negative)
 - Test the "Free" / no-event path
+- Test the `● Now` path for ongoing events (all three formats)
+
+#### Style tokens — AppStyle.swift (NEW)
+Extract all inline magic values into a single `AppStyle.swift` file using `extension Color` and `extension Font` so call-sites read naturally in SwiftUI modifiers (e.g. `.foregroundStyle(.appAccent)`, `.font(.appBody)`).
+
+**`extension Color` tokens to define:**
+```swift
+static let appAccent          = Color.orange
+static let appOngoingRow      = Color.orange.opacity(0.12)
+static let appHoverRow        = Color.primary.opacity(0.08)
+static let appPressedIcon     = Color.primary.opacity(0.16)
+static let appPopupScrim      = Color.black.opacity(0.85)
+static let appPopupText       = Color.white.opacity(0.7)
+static let appPopupStroke     = Color.white.opacity(0.3)
+static let appTooltipStroke   = Color.orange.opacity(0.5)
+```
+
+**`extension Font` tokens to define:**
+```swift
+static let appBody            = Font.system(.body,    design: .monospaced)
+static let appCaption         = Font.system(.caption, design: .monospaced)
+static let appCaptionBold     = Font.system(.caption, design: .monospaced).weight(.semibold)
+static let appTitle2          = Font.system(.title2,  design: .monospaced)
+static let appPopupTitle      = Font.system(size: 40, weight: .bold, design: .monospaced)
+```
+
+**Approach:** pure additive refactoring — values are identical, only named. Compile-time safe: any missed call-site causes a build error, not a silent visual regression. Touch every file that contains inline style literals; leave `ButtonStyle` internals (`MenuRowStyle`, `IconButtonStyle`) using local references since they already centralise their own opacities.
+
+**Files to update:** `ContentView.swift`, `FullScreenPopupView.swift`, `MenuBarLabelView.swift`, `SettingsView.swift`, `OnboardingView.swift` (if applicable).
 
 ---
 
@@ -94,8 +123,9 @@ The Dismiss button code is copy-pasted in both branches of `if let event`. Extra
 
 | File | Change |
 |------|--------|
-| `LightsUp/ContentView.swift` | Extract `EventRowView`, add clipboard button, fix SettingsLink |
-| `LightsUp/FullScreenPopupView.swift` | Add "Copy Link" button, "Dismiss [ESC]", bigger padding, deduplicate Dismiss, `.contentShape` |
+| `LightsUp/AppStyle.swift` | **NEW** — `extension Color` + `extension Font` style tokens |
+| `LightsUp/ContentView.swift` | Extract `EventRowView`, add clipboard button, fix SettingsLink, adopt AppStyle tokens |
+| `LightsUp/FullScreenPopupView.swift` | Add "Copy Link" button, "Dismiss [ESC]", bigger padding, deduplicate Dismiss, `.contentShape`, adopt AppStyle tokens |
 | `LightsUp/PopupWindowController.swift` | NSHostingController swap |
 | `LightsUp/MenuBarFormat.swift` | No change — referenced by tests |
 | `LightsUpTests/MenuBarFormatTests.swift` | **NEW** — unit tests for pure functions |
