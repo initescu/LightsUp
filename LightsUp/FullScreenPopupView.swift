@@ -10,30 +10,46 @@ struct FullScreenPopupView: View {
     let event: EKEvent?
     let onDismiss: () -> Void
 
+    private var dismissButton: some View {
+        Button { onDismiss() } label: {
+            Text("Dismiss [ESC]")
+                .font(.appBody)
+                .foregroundStyle(.appPopupText)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 14)
+                .contentShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.appPopupStroke, lineWidth: 1)
+        )
+        .buttonStyle(.plain)
+    }
+
     var body: some View {
         ZStack {
             // Dark scrim
-            Color.black.opacity(0.85)
+            Color.appPopupScrim
                 .ignoresSafeArea()
 
             if let event = event {
                 VStack(spacing: 32) {
                     // Calendar label
                     Text(event.calendar.title.uppercased())
-                        .font(.system(.caption, design: .monospaced).weight(.semibold))
-                        .foregroundStyle(.orange)
+                        .font(.appCaptionBold)
+                        .foregroundStyle(.appAccent)
                         .tracking(2)
 
                     // Event info
                     VStack(spacing: 8) {
                         Text(event.title ?? "(No title)")
-                            .font(.system(size: 40, weight: .bold, design: .monospaced))
+                            .font(.appPopupTitle)
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
 
                         Text("\(event.startDate.formatted(date: .omitted, time: .shortened)) – \(event.endDate.formatted(date: .omitted, time: .shortened))")
-                            .font(.system(.title2, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .font(.appTitle2)
+                            .foregroundStyle(.appPopupText)
                     }
 
                     // Actions
@@ -50,7 +66,7 @@ struct FullScreenPopupView: View {
                                     .padding(.vertical, 14)
                                     .contentShape(RoundedRectangle(cornerRadius: 8))
                             }
-                            .background(Color.orange)
+                            .background(Color.appAccent)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                             .buttonStyle(.plain)
 
@@ -60,32 +76,20 @@ struct FullScreenPopupView: View {
                                 onDismiss()
                             } label: {
                                 Text("Copy Link")
-                                    .font(.system(.body, design: .monospaced))
-                                    .foregroundStyle(.white.opacity(0.7))
+                                    .font(.appBody)
+                                    .foregroundStyle(.appPopupText)
                                     .padding(.horizontal, 28)
                                     .padding(.vertical, 14)
                                     .contentShape(RoundedRectangle(cornerRadius: 8))
                             }
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                    .stroke(Color.appPopupStroke, lineWidth: 1)
                             )
                             .buttonStyle(.plain)
                         }
 
-                        Button { onDismiss() } label: {
-                            Text("Dismiss [ESC]")
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundStyle(.white.opacity(0.7))
-                                .padding(.horizontal, 28)
-                                .padding(.vertical, 14)
-                                .contentShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                        )
-                        .buttonStyle(.plain)
+                        dismissButton
                     }
                 }
                 .padding(48)
@@ -96,20 +100,8 @@ struct FullScreenPopupView: View {
                         .foregroundStyle(.white.opacity(0.5))
                     Text("No upcoming events")
                         .font(.system(.title, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.7))
-                    Button { onDismiss() } label: {
-                        Text("Dismiss [ESC]")
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.7))
-                            .padding(.horizontal, 28)
-                            .padding(.vertical, 14)
-                            .contentShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                    )
-                    .buttonStyle(.plain)
+                        .foregroundStyle(.appPopupText)
+                    dismissButton
                 }
                 .padding(48)
             }

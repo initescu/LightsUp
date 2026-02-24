@@ -24,7 +24,7 @@ struct SettingsView: View {
 
             if calendarManager.allCalendars.isEmpty {
                 Text("No calendars found.\nGrant calendar access first.")
-                    .font(.system(.body, design: .monospaced))
+                    .font(.appBody)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -44,7 +44,7 @@ struct SettingsView: View {
             Divider()
             HStack {
                 Text("Format")
-                    .font(.system(.body, design: .monospaced))
+                    .font(.appBody)
                 Spacer()
                 Picker("", selection: $menuBarFormat) {
                     ForEach(MenuBarFormat.allCases) { fmt in
@@ -63,7 +63,7 @@ struct SettingsView: View {
             Divider()
             HStack {
                 Text("Launch at Login")
-                    .font(.system(.body, design: .monospaced))
+                    .font(.appBody)
                 Spacer()
                 Toggle("", isOn: $launchAtLogin)
                     .labelsHidden()
@@ -91,7 +91,7 @@ struct SettingsView: View {
                 .frame(width: 10, height: 10)
 
             Text(calendar.title)
-                .font(.system(.body, design: .monospaced))
+                .font(.appBody)
 
             Spacer()
 

@@ -47,7 +47,7 @@ struct OnboardingView: View {
             if step > 0 && step < totalSteps - 1 {
                 Button("← Back") { step -= 1 }
                     .buttonStyle(.plain)
-                    .font(.system(.body, design: .monospaced))
+                    .font(.appBody)
                     .foregroundStyle(.secondary)
             }
 
@@ -62,7 +62,7 @@ struct OnboardingView: View {
             }
             .buttonStyle(.plain)
             .font(.system(.body, design: .monospaced).weight(.semibold))
-            .foregroundStyle(.orange)
+            .foregroundStyle(.appAccent)
         }
     }
 
@@ -72,7 +72,7 @@ struct OnboardingView: View {
         VStack(spacing: 16) {
             Image(systemName: "lightbulb.fill")
                 .font(.system(size: 52))
-                .foregroundStyle(.orange)
+                .foregroundStyle(.appAccent)
 
             Text("LightsUp")
                 .font(.system(size: 32, weight: .bold, design: .monospaced))
@@ -106,7 +106,7 @@ struct OnboardingView: View {
         VStack(spacing: 20) {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.system(size: 44))
-                .foregroundStyle(.orange)
+                .foregroundStyle(.appAccent)
 
             Text("Calendar Access")
                 .font(.system(.title2, design: .monospaced, weight: .bold))
@@ -126,13 +126,13 @@ struct OnboardingView: View {
         switch calendarManager.authorizationStatus {
         case .fullAccess:
             Label("Access granted", systemImage: "checkmark.circle.fill")
-                .font(.system(.body, design: .monospaced))
+                .font(.appBody)
                 .foregroundStyle(.green)
 
         case .denied, .restricted:
             VStack(spacing: 6) {
                 Label("Access denied", systemImage: "xmark.circle.fill")
-                    .font(.system(.body, design: .monospaced))
+                    .font(.appBody)
                     .foregroundStyle(.red)
                 Text("System Settings → Privacy & Security → Calendars")
                     .font(.system(.caption, design: .monospaced))
@@ -147,7 +147,7 @@ struct OnboardingView: View {
             .foregroundStyle(.black)
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
-            .background(Color.orange)
+            .background(Color.appAccent)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .buttonStyle(.plain)
         }
@@ -173,10 +173,10 @@ struct OnboardingView: View {
     private func featureRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(.orange)
+                .foregroundStyle(.appAccent)
                 .frame(width: 20)
             Text(text)
-                .font(.system(.body, design: .monospaced))
+                .font(.appBody)
         }
     }
 

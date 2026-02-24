@@ -48,7 +48,7 @@ struct TooltipLabel: View {
 
     var body: some View {
         Text(text)
-            .font(.system(.body, design: .monospaced))
+            .font(.appBody)
             .foregroundStyle(.primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
@@ -59,7 +59,7 @@ struct TooltipLabel: View {
                     .fill(Color(NSColor.windowBackgroundColor))
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                            .stroke(Color.appTooltipStroke, lineWidth: 1)
                     )
                     .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
             )
@@ -84,7 +84,7 @@ struct CopyIconButton: View {
             }
         } label: {
             Image(systemName: "doc.on.clipboard")
-                .foregroundStyle(.orange)
+                .foregroundStyle(.appAccent)
         }
         .buttonStyle(IconButtonStyle(isActive: justCopied))
         .onHover {
@@ -119,7 +119,7 @@ struct EventRowView: View {
         let sx = phase * (1 + span) - span
         let ex = phase * (1 + span)
         return LinearGradient(
-            colors: [.primary, .orange, .primary],
+            colors: [.primary, .appAccent, .primary],
             startPoint: UnitPoint(x: sx, y: 0.5),
             endPoint: UnitPoint(x: ex, y: 0.5)
         )
@@ -143,17 +143,17 @@ struct EventRowView: View {
                                 .truncatingRemainder(dividingBy: duration) / duration
                         )
                         Text(event.title ?? "(No title)")
-                            .font(.system(.body, design: .monospaced))
+                            .font(.appBody)
                             .lineLimit(1)
                             .foregroundStyle(shimmerGradient(phase: phase))
                     }
                 } else {
                     Text(event.title ?? "(No title)")
-                        .font(.system(.body, design: .monospaced))
+                        .font(.appBody)
                         .lineLimit(1)
                 }
                 Text(timeRange)
-                    .font(.system(.caption, design: .monospaced))
+                    .font(.appCaption)
                     .foregroundStyle(.secondary)
             }
             .onHover { titleHovered = $0 }
@@ -172,7 +172,7 @@ struct EventRowView: View {
                         NSWorkspace.shared.open(url)
                     } label: {
                         Image(systemName: "arrow.up.right.square")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(.appAccent)
                     }
                     .buttonStyle(IconButtonStyle())
 
@@ -184,7 +184,7 @@ struct EventRowView: View {
             }
         }
         .padding(.vertical, 5)
-        .background(isOngoing ? Color.orange.opacity(0.12) : Color.clear)
+        .background(isOngoing ? Color.appOngoingRow : Color.clear)
         .zIndex(titleHovered || copyHovered ? 1 : 0)
     }
 }
@@ -261,15 +261,15 @@ struct ContentView: View {
             .formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
             .uppercased()
         return Text("\(label)  \(datePart)")
-            .font(.system(.caption, design: .monospaced).weight(.semibold))
-            .foregroundStyle(.orange)
+            .font(.appCaptionBold)
+            .foregroundStyle(.appAccent)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
     }
 
     private func emptyLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(.caption, design: .monospaced))
+            .font(.appCaption)
             .foregroundStyle(.secondary)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
@@ -283,7 +283,7 @@ struct ContentView: View {
                 .font(.system(size: 28))
                 .foregroundStyle(.secondary)
             Text("Calendar access denied.")
-                .font(.system(.body, design: .monospaced))
+                .font(.appBody)
             Button("Open System Settings") {
                 NSWorkspace.shared.open(
                     // swiftlint:disable:next force_unwrapping
@@ -291,8 +291,8 @@ struct ContentView: View {
                 )
             }
             .buttonStyle(.plain)
-            .font(.system(.caption, design: .monospaced))
-            .foregroundStyle(.orange)
+            .font(.appCaption)
+            .foregroundStyle(.appAccent)
         }
         .frame(maxWidth: .infinity)
         .padding()
@@ -300,7 +300,7 @@ struct ContentView: View {
 
     private var accessPromptView: some View {
         Text("Open the menu bar icon\nand grant calendar access.")
-            .font(.system(.body, design: .monospaced))
+            .font(.appBody)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
@@ -312,8 +312,8 @@ struct ContentView: View {
     private var bottomBar: some View {
         HStack(spacing: 0) {
             Button("Test Popup") { popup?.show() }
-                .font(.system(.body, design: .monospaced))
-                .foregroundStyle(.orange)
+                .font(.appBody)
+                .foregroundStyle(.appAccent)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -321,14 +321,15 @@ struct ContentView: View {
 
             Divider().frame(height: 20)
 
-            SettingsLink {
-                Text("Settings...")
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+            Button("Settings...") {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
             }
+            .font(.appBody)
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .buttonStyle(MenuRowStyle())
         }
     }
