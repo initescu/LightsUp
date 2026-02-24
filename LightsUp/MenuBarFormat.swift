@@ -34,16 +34,26 @@ func countdownString(from now: Date, to start: Date) -> String {
 
 func menuBarLabelString(format: MenuBarFormat, event: EKEvent?, now: Date = Date()) -> String {
     guard let event else { return "Free" }
+    if event.startDate <= now && event.endDate > now {
+        // Ongoing event: show live indicator instead of a stale countdown.
+        switch format {
+        case .compact: return "● Now"
+        case .medium:
+            return "● Now · \(truncated(event.title ?? "No title", max: mediumMax))"
+        case .large:
+            let fmt = Date.FormatStyle(date: .omitted, time: .shortened)
+            let range = "\(event.startDate.formatted(fmt))–\(event.endDate.formatted(fmt))"
+            return "● Now · \(truncated(event.title ?? "No title", max: largeMax)) · \(range)"
+        }
+    }
     let cd = countdownString(from: now, to: event.startDate)
     switch format {
     case .compact: return "⌛ \(cd)"
     case .medium:
-        let t = truncated(event.title ?? "No title", max: mediumMax)
-        return "⌛ \(cd) · \(t)"
+        return "⌛ \(cd) · \(truncated(event.title ?? "No title", max: mediumMax))"
     case .large:
-        let t = truncated(event.title ?? "No title", max: largeMax)
         let fmt = Date.FormatStyle(date: .omitted, time: .shortened)
         let range = "\(event.startDate.formatted(fmt))–\(event.endDate.formatted(fmt))"
-        return "⌛ \(cd) · \(t) · \(range)"
+        return "⌛ \(cd) · \(truncated(event.title ?? "No title", max: largeMax)) · \(range)"
     }
 }
