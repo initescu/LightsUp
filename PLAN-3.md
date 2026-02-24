@@ -2,11 +2,11 @@
 
 ## Context
 
-Milestone 2 shipped a live menu bar label, instant calendar refresh, and launch at login. Milestone 3 has two goals:
+Milestone 2 shipped a live menu bar label, instant calendar refresh, and launch at login. Milestone 3 has one goal:
 
 1. **Fix calendar sync lag** — users report events take several seconds to reflect after edits in Calendar.app or when new events are added. The `EKEventStoreChanged` notification is the primary refresh path but it can be slow or delayed; the 5 s monitoring timer currently only checks for meeting starts, not data freshness.
 
-2. **Distribution** — make the app installable on other machines. Packaging tooling + GitHub Release workflow. Notarization requires a **paid Apple Developer Program membership ($99/year)** which the user does not yet have; the scripts are designed to support notarization as an opt-in step added later without code changes.
+> **Distribution (F2) has been moved to `DISTRIBUTION-PLAN.md`.**
 
 ---
 
@@ -52,39 +52,11 @@ Note: `checkForEventStarts()` continues to run last — it reads from the freshl
 
 ---
 
-### F2 · Distribution tooling
-
-#### Notarization reality check
-
-| Scenario | What happens |
-|----------|-------------|
-| No signing (current) | Works on dev machine only; Gatekeeper blocks on all other Macs |
-| Ad-hoc sign (`codesign --sign -`) | Same — Gatekeeper blocks on other Macs; ad-hoc identity is machine-local |
-| **Paid Developer account** ($99/yr) | Sign with Developer ID cert + notarize via `notarytool` → Gatekeeper passes silently everywhere |
-
-**M3 delivers:** build script + GitHub Actions workflow + `ExportOptions.plist`. The notarization step in `scripts/build-release.sh` is gated behind a `NOTARIZE=1` env var — set it to `0` (the default) to produce an unsigned DMG that works on your own machine and can be shared with technical users who know how to right-click > Open. Set it to `1` once you have a Developer account.
-
-#### New files
-
-**`scripts/build-release.sh`** — archive, export, optional notarize, wrap in DMG
-
-**`scripts/ExportOptions.plist`** — xcodebuild export configuration
-
-**`.github/workflows/release.yml`** — triggers on `v*` tags, builds DMG on macOS runner, uploads as GitHub Release asset
-
-**`RELEASING.md`** — step-by-step release guide including future notarization instructions
-
----
-
 ## Critical files
 
 | File | Change |
 |------|--------|
 | `LightsUp/CalendarManager.swift` | `startMonitoring()` timer body: add `store.reset()` + `loadCalendars()` + `fetchEvents()` before `checkForEventStarts()` |
-| `scripts/build-release.sh` | **NEW** — archive, export, optional notarize, DMG |
-| `scripts/ExportOptions.plist` | **NEW** — xcodebuild export config |
-| `.github/workflows/release.yml` | **NEW** — CI release workflow |
-| `RELEASING.md` | **NEW** — step-by-step release guide |
 
 ---
 
@@ -97,13 +69,6 @@ Note: `checkForEventStarts()` continues to run last — it reads from the freshl
 4. Add a new event for today → appears in dropdown within ≤ 5 s.
 
 **Note:** Required an additional fix beyond the plan — `ContentView` needed a 5 s `Timer.publish` ticker (same pattern as `MenuBarLabelView`) because `@Observable` propagation to `MenuBarExtra` window content is unreliable on macOS 26. The ticker forces re-renders so the dropdown always reflects fresh data.
-
-### F2 — Distribution build
-1. Run `bash scripts/build-release.sh 1.0.0` from repo root.
-2. Verify `build/LightsUp-1.0.0.dmg` is created.
-3. Double-click the DMG → mount → drag LightsUp.app to Applications → launch → app works.
-4. (On dev machine) Verify Gatekeeper doesn't block (ad-hoc sign is trusted locally).
-5. Push a `v1.0.0` tag → verify GitHub Actions run completes and DMG appears as a release asset.
 
 ### Build check
 `./scripts/verify.sh` passes (0 SwiftLint violations, xcodebuild succeeds).
