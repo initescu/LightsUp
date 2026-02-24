@@ -22,6 +22,47 @@ struct MenuRowStyle: ButtonStyle {
     }
 }
 
+// Compact button style for icon buttons: hover + pressed background, no chrome.
+struct IconButtonStyle: ButtonStyle {
+    var isActive: Bool = false
+    @State private var isHovered = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(4)
+            .background(
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(
+                        configuration.isPressed || isActive
+                            ? Color.primary.opacity(0.16)
+                            : (isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                    )
+            )
+            .onHover { isHovered = $0 }
+    }
+}
+
+// Clipboard button: holds a "pressed" background for ~0.4 s after release.
+struct CopyIconButton: View {
+    let url: URL
+    @State private var justCopied = false
+
+    var body: some View {
+        Button {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(url.absoluteString, forType: .string)
+            justCopied = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                justCopied = false
+            }
+        } label: {
+            Image(systemName: "doc.on.clipboard")
+                .foregroundStyle(.orange)
+        }
+        .buttonStyle(IconButtonStyle(isActive: justCopied))
+    }
+}
+
 struct ContentView: View {
     @Environment(CalendarManager.self) private var calendarManager
     @State private var popup: PopupWindowController?
@@ -123,14 +164,18 @@ struct ContentView: View {
             Spacer()
 
             if let url = event.meetingURL {
-                Button {
-                    NSWorkspace.shared.open(url)
-                } label: {
-                    Image(systemName: "arrow.up.right.square")
-                        .foregroundStyle(.orange)
+                HStack(spacing: 4) {
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Image(systemName: "arrow.up.right.square")
+                            .foregroundStyle(.orange)
+                    }
+                    .buttonStyle(IconButtonStyle())
+
+                    CopyIconButton(url: url)
                 }
-                .buttonStyle(.plain)
-                .padding(.trailing, 12)
+                .padding(.trailing, 8)
             } else {
                 Spacer().frame(width: 12)
             }
