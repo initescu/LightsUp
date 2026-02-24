@@ -4,6 +4,7 @@
 //
 
 import AppKit
+import Combine
 import EventKit
 import SwiftUI
 
@@ -24,6 +25,9 @@ struct MenuRowStyle: ButtonStyle {
 struct ContentView: View {
     @Environment(CalendarManager.self) private var calendarManager
     @State private var popup: PopupWindowController?
+    @State private var now: Date = Date()
+
+    private let ticker = Timer.publish(every: 5, tolerance: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,6 +40,7 @@ struct ContentView: View {
             calendarManager.fetchEvents()
             popup = PopupWindowController(calendarManager: calendarManager)
         }
+        .onReceive(ticker) { self.now = $0 }
     }
 
     // MARK: - Main content
@@ -57,7 +62,7 @@ struct ContentView: View {
     private var eventsView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                sectionHeader("TODAY", date: .now)
+                sectionHeader("TODAY", date: now)
                 if calendarManager.todayEvents.isEmpty {
                     emptyLabel("No upcoming events today")
                 } else {
@@ -69,7 +74,7 @@ struct ContentView: View {
                 Divider()
                     .padding(.vertical, 6)
 
-                let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .now
+                let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now
                 sectionHeader("TOMORROW", date: tomorrow)
                 if calendarManager.tomorrowEvents.isEmpty {
                     emptyLabel("No events tomorrow")
@@ -96,7 +101,6 @@ struct ContentView: View {
     }
 
     private func eventRow(_ event: EKEvent) -> some View {
-        let now = Date()
         let isOngoing = event.startDate <= now && event.endDate > now
         let timeRange = "\(event.startDate.formatted(date: .omitted, time: .shortened)) – " +
                         "\(event.endDate.formatted(date: .omitted, time: .shortened))"

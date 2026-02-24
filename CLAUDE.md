@@ -107,8 +107,9 @@ SwiftLint config: `.swiftlint.yml` — only `force_cast`, `force_try`, `force_un
 - F3: `EKEventStoreChanged` instant refresh — verified working; `store.reset()` required before fetch to clear EKEventStore cache
 - F4: Launch at Login toggle in Settings using `SMAppService.mainApp`; verified via reboot
 
-## Up Next — Milestone 3
-TBD. Discuss with user.
+## Milestone 3 — In Progress
+- **F1: Calendar sync speed fix** — complete. `startMonitoring()` now calls `store.reset()` + `loadCalendars()` + `fetchEvents()` every 5 s. `ContentView` also got a 5 s ticker (same pattern as `MenuBarLabelView`) to force re-renders — `@Observable` propagation to `MenuBarExtra` window content is unreliable on macOS 26.
+- **F2: Distribution tooling** — not yet started.
 
 ## Bundle ID
 `ohwow.LightsUp`
