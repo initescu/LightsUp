@@ -63,6 +63,84 @@ struct CopyIconButton: View {
     }
 }
 
+struct EventRowView: View {
+    let event: EKEvent
+    let isOngoing: Bool
+
+    private var timeRange: String {
+        "\(event.startDate.formatted(date: .omitted, time: .shortened)) – " +
+        "\(event.endDate.formatted(date: .omitted, time: .shortened))"
+    }
+
+    // A narrow orange band whose centre sweeps from left to right.
+    // phase 0 → band fully left of view; phase 1 → band fully right of view.
+    private func shimmerGradient(phase: CGFloat) -> LinearGradient {
+        let span: CGFloat = 0.35          // gradient band width relative to text width
+        let sx = phase * (1 + span) - span
+        let ex = phase * (1 + span)
+        return LinearGradient(
+            colors: [.primary, .orange, .primary],
+            startPoint: UnitPoint(x: sx, y: 0.5),
+            endPoint: UnitPoint(x: ex, y: 0.5)
+        )
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(Color(cgColor: event.calendar.cgColor))
+                .frame(width: 8, height: 8)
+                .padding(.leading, 12)
+
+            VStack(alignment: .leading, spacing: 1) {
+                if isOngoing {
+                    // TimelineView drives redraws via system time — no @State mutations,
+                    // no animation transactions, container stays perfectly still.
+                    TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { ctx in
+                        let duration = 2.5
+                        let phase = CGFloat(
+                            ctx.date.timeIntervalSinceReferenceDate
+                                .truncatingRemainder(dividingBy: duration) / duration
+                        )
+                        Text(event.title ?? "(No title)")
+                            .font(.system(.body, design: .monospaced))
+                            .lineLimit(1)
+                            .foregroundStyle(shimmerGradient(phase: phase))
+                    }
+                } else {
+                    Text(event.title ?? "(No title)")
+                        .font(.system(.body, design: .monospaced))
+                        .lineLimit(1)
+                }
+                Text(timeRange)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if let url = event.meetingURL {
+                HStack(spacing: 4) {
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Image(systemName: "arrow.up.right.square")
+                            .foregroundStyle(.orange)
+                    }
+                    .buttonStyle(IconButtonStyle())
+
+                    CopyIconButton(url: url)
+                }
+                .padding(.trailing, 8)
+            } else {
+                Spacer().frame(width: 12)
+            }
+        }
+        .padding(.vertical, 5)
+        .background(isOngoing ? Color.orange.opacity(0.12) : Color.clear)
+    }
+}
+
 struct ContentView: View {
     @Environment(CalendarManager.self) private var calendarManager
     @State private var popup: PopupWindowController?
@@ -107,8 +185,8 @@ struct ContentView: View {
                 if calendarManager.todayEvents.isEmpty {
                     emptyLabel("No upcoming events today")
                 } else {
-                    ForEach(calendarManager.todayEvents, id: \.eventIdentifier) {
-                        eventRow($0)
+                    ForEach(calendarManager.todayEvents, id: \.eventIdentifier) { event in
+                        EventRowView(event: event, isOngoing: event.startDate <= now && event.endDate > now)
                     }
                 }
 
@@ -120,8 +198,8 @@ struct ContentView: View {
                 if calendarManager.tomorrowEvents.isEmpty {
                     emptyLabel("No events tomorrow")
                 } else {
-                    ForEach(calendarManager.tomorrowEvents, id: \.eventIdentifier) {
-                        eventRow($0)
+                    ForEach(calendarManager.tomorrowEvents, id: \.eventIdentifier) { event in
+                        EventRowView(event: event, isOngoing: event.startDate <= now && event.endDate > now)
                     }
                 }
             }
@@ -139,49 +217,6 @@ struct ContentView: View {
             .foregroundStyle(.orange)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
-    }
-
-    private func eventRow(_ event: EKEvent) -> some View {
-        let isOngoing = event.startDate <= now && event.endDate > now
-        let timeRange = "\(event.startDate.formatted(date: .omitted, time: .shortened)) – " +
-                        "\(event.endDate.formatted(date: .omitted, time: .shortened))"
-
-        return HStack(spacing: 8) {
-            Circle()
-                .fill(Color(cgColor: event.calendar.cgColor))
-                .frame(width: 8, height: 8)
-                .padding(.leading, 12)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(event.title ?? "(No title)")
-                    .font(.system(.body, design: .monospaced))
-                    .lineLimit(1)
-                Text(timeRange)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            if let url = event.meetingURL {
-                HStack(spacing: 4) {
-                    Button {
-                        NSWorkspace.shared.open(url)
-                    } label: {
-                        Image(systemName: "arrow.up.right.square")
-                            .foregroundStyle(.orange)
-                    }
-                    .buttonStyle(IconButtonStyle())
-
-                    CopyIconButton(url: url)
-                }
-                .padding(.trailing, 8)
-            } else {
-                Spacer().frame(width: 12)
-            }
-        }
-        .padding(.vertical, 5)
-        .background(isOngoing ? Color.orange.opacity(0.12) : Color.clear)
     }
 
     private func emptyLabel(_ text: String) -> some View {
