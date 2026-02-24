@@ -42,10 +42,37 @@ struct IconButtonStyle: ButtonStyle {
     }
 }
 
-// Clipboard button: holds a "pressed" background for ~0.4 s after release.
+// Shared tooltip card — monospaced body, orange border, system background.
+struct TooltipLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(.body, design: .monospaced))
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .frame(maxWidth: 240, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(NSColor.windowBackgroundColor))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+            )
+            .allowsHitTesting(false)
+    }
+}
+
+// Clipboard button: pressed background for ~0.4 s after release; tooltip on hover.
 struct CopyIconButton: View {
     let url: URL
+    var onHoverChange: ((Bool) -> Void)? = nil
     @State private var justCopied = false
+    @State private var isHovered = false
 
     var body: some View {
         Button {
@@ -60,6 +87,17 @@ struct CopyIconButton: View {
                 .foregroundStyle(.orange)
         }
         .buttonStyle(IconButtonStyle(isActive: justCopied))
+        .onHover {
+            isHovered = $0
+            onHoverChange?($0)
+        }
+        .overlay(alignment: .topTrailing) {
+            if isHovered {
+                TooltipLabel(text: "copy meeting url")
+                    .fixedSize()
+                    .offset(y: -36)
+            }
+        }
     }
 }
 
@@ -67,6 +105,7 @@ struct EventRowView: View {
     let event: EKEvent
     let isOngoing: Bool
     @State private var titleHovered = false
+    @State private var copyHovered = false
 
     private var timeRange: String {
         "\(event.startDate.formatted(date: .omitted, time: .shortened)) – " +
@@ -120,24 +159,8 @@ struct EventRowView: View {
             .onHover { titleHovered = $0 }
             .overlay(alignment: .topLeading) {
                 if titleHovered {
-                    Text(event.title ?? "(No title)")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .frame(maxWidth: 240, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color(NSColor.windowBackgroundColor))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
-                                )
-                                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                        )
-                        .fixedSize(horizontal: false, vertical: true)
+                    TooltipLabel(text: event.title ?? "(No title)")
                         .offset(y: -36)
-                        .allowsHitTesting(false)
                 }
             }
 
@@ -153,7 +176,7 @@ struct EventRowView: View {
                     }
                     .buttonStyle(IconButtonStyle())
 
-                    CopyIconButton(url: url)
+                    CopyIconButton(url: url, onHoverChange: { copyHovered = $0 })
                 }
                 .padding(.trailing, 8)
             } else {
@@ -162,7 +185,7 @@ struct EventRowView: View {
         }
         .padding(.vertical, 5)
         .background(isOngoing ? Color.orange.opacity(0.12) : Color.clear)
-        .zIndex(titleHovered ? 1 : 0)
+        .zIndex(titleHovered || copyHovered ? 1 : 0)
     }
 }
 

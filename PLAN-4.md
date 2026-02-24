@@ -8,37 +8,32 @@ M3 completed calendar sync reliability. M4 focuses on polish: quick clipboard ac
 
 ## Features
 
-### F1 · Copy meeting link
+### F1 · Copy meeting link ✅ DONE
 
 **Dropdown row (`ContentView.swift`):**
-The existing `eventRow()` function shows a join button (`arrow.up.right.square`) if a meeting URL exists. Add a second icon button (`doc.on.clipboard`) alongside it. On tap: `NSPasteboard.general.clearContents()` + `NSPasteboard.general.setString(url.absoluteString, forType: .string)`. The two icon buttons sit in a small `HStack(spacing: 4)` replacing the single button.
+- `IconButtonStyle` (new): hover bg `primary.opacity(0.08)`, pressed bg `primary.opacity(0.16)`. Used by both icon buttons.
+- `CopyIconButton` (new struct): clipboard icon (`doc.on.clipboard`), orange tint. Holds pressed background for 0.4 s after tap via `justCopied` state + `IconButtonStyle(isActive:)`. Exposes `onHoverChange` callback so parent can manage z-index.
+- `TooltipLabel` (new shared struct): monospaced body, orange 0.5 border, system window background, shadow. Used by both title tooltip and button tooltip. **Note:** when overlaid on a tiny view, caller must add `.fixedSize()` to escape the parent's width constraint.
+- "copy meeting url" tooltip shown above the clipboard button on hover.
 
 **Popup (`FullScreenPopupView.swift`):**
-Add a "Copy Link" button to the actions `HStack`, between "Join Meeting" and "Dismiss". Style: same outlined look as Dismiss (white 0.7 text, white 0.3 stroke, same padding). On tap: copy URL to pasteboard, then call `onDismiss()`. Only shown when `event.meetingURL != nil`.
+"Copy Link" button added between "Join Meeting" and "Dismiss". Same outlined style as Dismiss. Copies URL then calls `onDismiss()`.
 
 ---
 
-### F2 · Ongoing event title pulse
+### F2 · Ongoing event title shimmer ✅ DONE
 
-**Goal:** When an event is ongoing (`startDate ≤ now < endDate`), its title text in the dropdown fades in and out continuously — the Claude Code throbber style: smooth opacity oscillation between ~1.0 and ~0.4, repeating forever with `easeInOut`.
+**Goal (revised from plan):** Instead of an opacity pulse, a narrow orange highlight band sweeps left-to-right across the title text continuously — like the Claude Code throbber.
 
-**Implementation:** Extract `eventRow()` into a standalone `EventRowView: View` struct (currently a function in `ContentView`). The struct receives `event: EKEvent` and `isOngoing: Bool`. Add:
+**Implementation:** `eventRow()` extracted to `EventRowView` struct. For ongoing events, title is wrapped in `TimelineView(.animation(minimumInterval: 1/30))` which drives a `LinearGradient` (`.primary → .orange → .primary`) via wall-clock phase. `shimmerGradient(phase:)` slides `startPoint`/`endPoint` across the text width over 2.5 s, looping seamlessly.
 
-```swift
-@State private var isPulsing = false
+**Why TimelineView instead of withAnimation:** `withAnimation` inside `.onAppear` propagates an animation transaction up the full view tree including the `MenuBarExtra` window, causing the popover to physically reposition (jitter). `TimelineView` redraws only its own subtree with no animation transactions.
 
-// On title Text:
-.opacity(isOngoing ? (isPulsing ? 0.4 : 1.0) : 1.0)
-.onAppear {
-    if isOngoing {
-        withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-            isPulsing = true
-        }
-    }
-}
-```
+**Also done:**
+- `ForEach` switched to `id: \.calendarItemIdentifier` — `eventIdentifier` is `String!` and can be nil, causing multiple rows to share the same SwiftUI identity and bleed `@State` (hover, tooltips) between them.
+- Title hover tooltip using `TooltipLabel` shows full title above the row on hover. `EventRowView` uses `.zIndex(titleHovered || copyHovered ? 1 : 0)` so tooltip floats above sibling rows.
 
-The background highlight (`Color.orange.opacity(0.12)`) remains static.
+**Bonus fix (not in original plan):** `menuBarLabelString()` now detects ongoing events and returns `● Now [· title]` instead of the stale `⌛ 0m` countdown.
 
 ---
 
@@ -136,7 +131,7 @@ static let appPopupTitle      = Font.system(size: 40, weight: .bold, design: .mo
 
 1. **Copy link — dropdown:** Click clipboard icon on any event row with a meeting URL → paste in a text editor → correct URL appears.
 2. **Copy link — popup:** Open popup for a meeting event → click "Copy Link" → popup closes → paste → correct URL.
-3. **Pulse:** Start the app with an ongoing meeting in today's events → open dropdown → title text gently fades in/out continuously. Non-ongoing events are static.
+3. **Shimmer:** Start the app with an ongoing meeting in today's events → open dropdown → a narrow orange band sweeps left-to-right across the title text continuously. Non-ongoing events are static. Dropdown stays perfectly still (no jitter).
 4. **Dismiss [ESC]:** Open popup → button reads "Dismiss [ESC]" → click it → closes. Press ESC → closes.
 5. **Button size:** Buttons visually larger; clicking near the edge of the button outline registers the click.
 6. **Settings:** Click "Settings..." in dropdown → Settings window comes to front (test after clicking elsewhere first).

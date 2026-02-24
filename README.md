@@ -9,10 +9,12 @@ it takes over your entire screen with an unavoidable full-screen notification. N
 meetings because you were deep in focus and dismissed a tiny notification.
 
 **Core features:**
-- Menu bar item with live countdown to next meeting (compact/medium/large formats)
-- Calendar sync via EventKit (Apple Calendar / Google Calendar)
+- Menu bar item with live countdown to next meeting (compact/medium/large formats); shows `● Now` while a meeting is in progress
+- Calendar sync via EventKit (Apple Calendar / Google Calendar) — data never more than 5 s stale
 - Full-screen takeover when a meeting starts — covers all connected displays
-- Click-through to join the meeting directly from the takeover screen
+- Join or copy the meeting link directly from the takeover screen or the dropdown
+- Ongoing event highlighted with a sweeping orange shimmer in the dropdown
+- Hover tooltips on truncated event titles and action buttons
 - Settings window: calendar selection, menu bar format, launch at login
 
 ## The problem it solves
@@ -38,12 +40,13 @@ LightsUp/
 │   ├── CalendarManager.swift       # @Observable EventKit wrapper, polling, store change observer
 │   ├── MenuBarFormat.swift         # Countdown/label format enum + pure format functions
 │   ├── MenuBarLabelView.swift      # Live menu bar label, 30 s ticker
-│   ├── ContentView.swift           # Dropdown: TODAY/TOMORROW event list
+│   ├── ContentView.swift           # Dropdown: event list, EventRowView, button/tooltip styles
 │   ├── SettingsView.swift          # Calendar toggles, format picker, launch at login
 │   ├── OnboardingView.swift        # First-launch 4-step flow
 │   ├── PopupWindowController.swift # Full-screen overlay window (AppKit)
-│   ├── FullScreenPopupView.swift   # Full-screen popup SwiftUI view + Join button
+│   ├── FullScreenPopupView.swift   # Full-screen popup: Join, Copy Link, Dismiss [ESC]
 │   └── EKEvent+MeetingURL.swift    # Extracts Zoom/Meet/Teams URL from event
+├── STYLE-GUIDE.md                  # Visual style guide (colours, fonts, spacing, patterns)
 ├── LightsUpTests/                  # Unit tests
 ├── LightsUpUITests/                # UI tests
 └── LightsUp.xcodeproj/             # Xcode project
@@ -60,10 +63,16 @@ LightsUp/
 
 - [x] Project scaffolding
 - [x] Menu bar item with live countdown (compact / medium / large)
+- [x] `● Now` indicator when a meeting is currently in progress
 - [x] Dropdown with TODAY/TOMORROW event list
-- [x] EventKit calendar integration (full access, instant refresh on edits)
+- [x] EventKit calendar integration (full access, instant refresh on edits, ≤ 5 s staleness)
 - [x] Meeting detection and full-screen takeover on event start
 - [x] Join meeting action from takeover screen (Zoom, Meet, Teams, etc.)
+- [x] Copy meeting link — clipboard button in dropdown + "Copy Link" in popup
+- [x] Ongoing event shimmer — orange highlight sweeps across the active event title
+- [x] Hover tooltips on truncated titles and action buttons
 - [x] First-launch onboarding with calendar permission request
 - [x] Settings window — calendar selection, menu bar format, launch at login
+- [ ] Popup button polish (Dismiss [ESC], larger hit areas)
+- [ ] Code maintenance (SettingsLink fix, style tokens, unit tests)
 - [ ] Notarization + distribution setup
