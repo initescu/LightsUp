@@ -6,5 +6,8 @@ build/
 xcuserdata/
 DerivedData/
 
+# Secrets
+.env
+
 # macOS
 .DS_Store
