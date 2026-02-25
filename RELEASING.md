@@ -4,24 +4,36 @@
 - macOS 26 (Tahoe) — must build on the same OS version the app targets
 - Xcode installed, `xcodebuild` available in PATH
 - `gh` CLI installed and authenticated (for `--publish`)
+- `ANTHROPIC_API_KEY` set (for auto-generated changelog) — or provide `--changelog <file>`
 
 ## Release steps
 
-### Build only
+### Build only (bump from latest tag)
 
 ```bash
-bash scripts/build-release.sh 1.0.0
+bash scripts/build-release.sh --patch              # v1.0.0 → v1.0.1
+bash scripts/build-release.sh --minor              # v1.0.0 → v1.1.0
+bash scripts/build-release.sh --major              # v1.0.0 → v2.0.0
+bash scripts/build-release.sh --version 2.5.0      # explicit version
 ```
 
-Produces `build/LightsUp-1.0.0.dmg`. The script builds, signs (ad-hoc with entitlements), verifies the signature, and packages the DMG.
+Produces `build/LightsUp-X.Y.Z.dmg`. The script builds, signs (ad-hoc with entitlements), verifies the signature, and packages the DMG. A changelog is auto-generated via the Claude API using commit messages and source diffs since the last release.
 
 ### Build + publish to GitHub Releases
 
 ```bash
-bash scripts/build-release.sh 1.0.0 --publish
+bash scripts/build-release.sh --patch --publish
 ```
 
-Same as above, plus tags the commit `v1.0.0` and creates a GitHub Release with the DMG attached.
+Same as above, plus tags the commit and creates a GitHub Release with the DMG attached and auto-generated release notes.
+
+### Custom changelog
+
+```bash
+bash scripts/build-release.sh --patch --changelog CHANGES.md --publish
+```
+
+Uses the provided file instead of calling the Claude API.
 
 ---
 
