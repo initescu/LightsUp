@@ -79,9 +79,6 @@ struct SettingsView: View {
             .padding(.horizontal, 16).padding(.vertical, 8)
         }
         .frame(width: 320, height: 440)
-        .onAppear {
-            NSApp.activate()
-        }
     }
 
     private func calendarRow(_ calendar: EKCalendar) -> some View {

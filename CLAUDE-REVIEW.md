@@ -4,8 +4,8 @@
 
 1. **`AppStyle.swift`** — Centralised tokens is the right idea. Font and colour tokens reduce magic values.
 2. **`dismissButton` extraction** — Proper deduplication in `FullScreenPopupView`.
-3. **`NSHostingController` swap** — More reliable, consistent with `AppDelegate`'s onboarding window.
-4. **`SettingsLink` → manual Button** — Correct fix for LSUIElement apps.
+3. ~~**`NSHostingController` swap**~~ — **Reverted.** `NSHostingController` drives window sizing from SwiftUI content, which collapses borderless fullscreen windows. `NSHostingView` is correct for the popup. Only use `NSHostingController` for windowed views (onboarding).
+4. ~~**`SettingsLink` → manual Button**~~ — **Reverted.** macOS 26 enforces `SettingsLink` for opening Settings scenes. The `NSApp.sendAction(Selector(("showSettingsWindow:")))` workaround now logs `"Please use SettingsLink"` and does nothing.
 5. **Unit tests for pure functions** — Good foundation; `MenuBarFormat` logic is now regression-safe.
 
 ## What needs attention
@@ -85,3 +85,35 @@ I'd tackle this in priority order:
 5. **DRY the meeting URL extraction**
 6. **Reduce timer aggressiveness**
 7. **Update docs** (CLAUDE.md, STYLE-GUIDE.md, AppStyle.swift header)
+
+---
+
+## Post-review regressions found & fixed
+
+### NSHostingController broke fullscreen popup
+The M4 swap from `NSHostingView` → `NSHostingController` in `PopupWindowController` caused the popup to render only in the bottom-left corner. Root cause: `NSHostingController` defaults to `sizingOptions = .preferredContentSize`, shrinking the borderless window to the SwiftUI content's intrinsic size. Setting `sizingOptions = []` made the window invisible entirely. **Fix:** reverted to `NSHostingView(rootView:)` as `win.contentView`.
+
+**Rule:** Use `NSHostingView` for borderless/fullscreen overlay windows. Use `NSHostingController` only for titled/windowed views where the controller should drive sizing (e.g. onboarding).
+
+### `NSApp.sendAction(showSettingsWindow:)` blocked on macOS 26
+The M4 replacement of `SettingsLink` with a manual `Button` + `NSApp.sendAction(Selector(("showSettingsWindow:")))` no longer works on macOS 26 — runtime logs `"Please use SettingsLink for opening the Settings scene"` and the window doesn't open. **Fix:** reverted to `SettingsLink` with styled label content.
+
+### `NSApp.activate()` in SettingsView caused warnings
+The `.onAppear { NSApp.activate() }` in `SettingsView` triggered the same `"Please use SettingsLink"` warning on first interaction with the format Picker. Removed — `SettingsLink` handles activation on macOS 26.
+
+**Known limitation:** Settings window sometimes opens behind the active window on LSUIElement apps. No clean workaround found yet — `NSApp.activate()` causes the SettingsLink warning.
+
+---
+
+## Future UX idea: Dropdown persistence
+
+**Request:** Keep the `MenuBarExtra` dropdown open while interacting with the Settings window, so the user can see both simultaneously.
+
+**Assessment:** This is **not feasible** with the current `MenuBarExtra(.window)` API. `MenuBarExtra` dismisses its panel whenever it loses focus — this is hardcoded AppKit behavior that SwiftUI doesn't expose hooks for.
+
+**Possible approaches (all significant rewrites):**
+1. Replace `MenuBarExtra` with a custom `NSPanel` managed via `NSStatusItem` — full control over dismissal, but loses all SwiftUI scene integration
+2. Use `NSPanel` with `.nonactivating` style mask + `.floatingPanel` level — stays visible when other windows activate, but requires reimplementing the entire dropdown lifecycle
+3. Move Settings into the dropdown itself (inline) instead of a separate window — avoids the problem entirely but changes the UX
+
+Recommend deferring to a future milestone if this becomes a priority.
