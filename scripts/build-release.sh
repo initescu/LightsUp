@@ -28,7 +28,19 @@ xcodebuild \
   | grep -v appintentsmetadata
 
 echo "==> Signing (ad-hoc)…"
-codesign --force --deep --sign - \
+# Sign embedded frameworks/dylibs first (--deep is deprecated and breaks the
+# code-signature chain, causing TCC to silently reject entitlements).
+if [ -d "$APP_PATH/Contents/Frameworks" ]; then
+  find "$APP_PATH/Contents/Frameworks" \
+    \( -name "*.framework" -o -name "*.dylib" \) | \
+    while read -r fw; do
+      echo "    signing $fw"
+      codesign --force --sign - "$fw"
+    done
+fi
+
+# Then sign the main bundle with entitlements
+codesign --force --sign - \
   --entitlements LightsUp/LightsUp.entitlements \
   --options runtime \
   "$APP_PATH"

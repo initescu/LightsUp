@@ -42,7 +42,9 @@ gh release create v1.0.0 build/LightsUp-1.0.0.dmg \
 2. Open the DMG — a window appears with LightsUp and an Applications shortcut
 3. Drag **LightsUp** into **Applications**
 4. **First launch:** double-clicking will show a Gatekeeper warning ("Apple could not verify…")
-   - Right-click (or ctrl-click) the app → **Open** → click **Open** in the dialog
+   - Click **Done** (do not move to Bin)
+   - Go to **System Settings → Privacy & Security**, scroll down to find the "LightsUp was blocked" message
+   - Click **Open Anyway** and authenticate
    - This is a one-time step; subsequent launches work normally
 5. When prompted, grant **Calendar access** — the app needs it to show your meetings
 
