@@ -16,7 +16,7 @@ struct MenuRowStyle: ButtonStyle {
         configuration.label
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                    .fill(isHovered ? Color.appHoverRow : Color.clear)
             )
             .onHover { isHovered = $0 }
     }
@@ -34,8 +34,8 @@ struct IconButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 5)
                     .fill(
                         configuration.isPressed || isActive
-                            ? Color.primary.opacity(0.16)
-                            : (isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                            ? Color.appPressedIcon
+                            : (isHovered ? Color.appHoverRow : Color.clear)
                     )
             )
             .onHover { isHovered = $0 }

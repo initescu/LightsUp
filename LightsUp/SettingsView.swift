@@ -15,7 +15,7 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Calendars")
-                .font(.system(.headline, design: .monospaced))
+                .font(.appHeadline)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 8)
@@ -39,7 +39,7 @@ struct SettingsView: View {
 
             Divider()
             Text("Menu Bar")
-                .font(.system(.headline, design: .monospaced))
+                .font(.appHeadline)
                 .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 8)
             Divider()
             HStack {
@@ -58,7 +58,7 @@ struct SettingsView: View {
 
             Divider()
             Text("General")
-                .font(.system(.headline, design: .monospaced))
+                .font(.appHeadline)
                 .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 8)
             Divider()
             HStack {

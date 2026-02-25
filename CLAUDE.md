@@ -3,11 +3,11 @@
 ## What This App Is
 macOS 26 (Tahoe) menu bar app that shows upcoming calendar events. LSUIElement background agent with a dropdown panel and a full-screen popup overlay. **No backwards compatibility** — macOS 26 only.
 
-## Current State (as of 2026-02-24)
+## Current State (as of 2026-02-25)
 - **Milestone 1 complete.** All 6 steps validated by user.
 - **Milestone 2 complete.** All 4 features validated by user (including Launch at Login verified via reboot).
 - **Milestone 3 complete.** F1 (calendar sync speed fix) validated. F2 (distribution tooling) deferred to `DISTRIBUTION-PLAN.md`.
-- **Milestone 4 in progress.** F1 (copy meeting link) and F2 (ongoing event shimmer) validated. F3 (popup button improvements) and F4 (maintenance) pending.
+- **Milestone 4 complete.** All features and maintenance tasks done. See `PLAN-5.md` for deferred items.
 
 ## Architecture
 - **`LightsUpApp.swift`** — `@main` App with `@NSApplicationDelegateAdaptor(AppDelegate.self)`. AppDelegate owns `calendarManager: CalendarManager` and shows onboarding window on first launch. Has `MenuBarExtra` (label-closure form, window style) and `Settings` scene.
@@ -15,9 +15,9 @@ macOS 26 (Tahoe) menu bar app that shows upcoming calendar events. LSUIElement b
 - **`CalendarManager.swift`** — `@Observable` class. Stored `var enabledCalendarIDs: Set<String>` with `didSet` (NOT computed — `@Observable` only tracks stored properties). Fetches today's and tomorrow's non-allDay events for enabled calendars. Polling timer: 5 s. `observeStoreChanges()` calls `store.reset()` then `loadCalendars()` + `fetchEvents()` on `.EKEventStoreChanged`.
 - **`MenuBarFormat.swift`** — `MenuBarFormat` enum (compact/medium/large) + `menuBarLabelString()` and `countdownString()` pure functions. `@AppStorage("menuBarFormat")` key shared between label view and settings.
 - **`MenuBarLabelView.swift`** — Menu bar label view. `@AppStorage("menuBarFormat")` drives format. 30 s `Timer.publish` ticker refreshes countdown. Requires `import Combine` for `autoconnect()`. Passed via `label:` closure in `MenuBarExtra` — requires `.environment(calendarManager)` explicitly (label is a separate view tree from the content).
-- **`ContentView.swift`** — Menu bar dropdown. Shows events grouped TODAY/TOMORROW. Contains `MenuRowStyle`, `IconButtonStyle`, `CopyIconButton`, `TooltipLabel`, and `EventRowView` (standalone struct — required for `@State`-based animations). Uses `calendarItemIdentifier` (not `eventIdentifier`) as ForEach ID — `eventIdentifier` is `String!` and can be nil, causing view identity collisions. Settings button uses `NSApp.activate()` + `NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)` (NOT `SettingsLink` — SettingsLink doesn't bring window to front from LSUIElement app).
-- **`SettingsView.swift`** — Calendar toggle list + Menu Bar format picker + Launch at Login toggle. Has `.onAppear { NSApp.activate() }`. Launch at Login uses `@State private var launchAtLogin` (NOT a `Binding` with `get/set` — `SMAppService.mainApp.status` is not SwiftUI-tracked, so the toggle won't visually update without `@State`). `onChange` calls `SMAppService.mainApp.register/unregister`.
-- **`OnboardingView.swift`** — 4-step flow. Closes via title-lookup: `NSApp.windows.first(where: { $0.title == "Welcome to LightsUp" })?.close()`. Sets `NSApp.setActivationPolicy(.accessory)` on complete.
+- **`ContentView.swift`** — Menu bar dropdown. Shows events grouped TODAY/TOMORROW. Contains `MenuRowStyle`, `IconButtonStyle`, `CopyIconButton`, `TooltipLabel`, and `EventRowView` (standalone struct — required for `@State`-based animations). Uses `calendarItemIdentifier` (not `eventIdentifier`) as ForEach ID — `eventIdentifier` is `String!` and can be nil, causing view identity collisions. Settings button uses `SettingsLink` — on macOS 26, `NSApp.sendAction(Selector(("showSettingsWindow:")))` is blocked at runtime.
+- **`SettingsView.swift`** — Calendar toggle list + Menu Bar format picker + Launch at Login toggle. Launch at Login uses `@State private var launchAtLogin` (NOT a `Binding` with `get/set` — `SMAppService.mainApp.status` is not SwiftUI-tracked, so the toggle won't visually update without `@State`). `onChange` calls `SMAppService.mainApp.register/unregister`. No `.onAppear { NSApp.activate() }` — `SettingsLink` handles activation.
+- **`OnboardingView.swift`** — 4-step flow. Takes `onComplete: () -> Void` callback — called by `complete()` which sets `hasCompletedOnboarding = true`, calls `NSApp.setActivationPolicy(.accessory)`, then fires the callback. `AppDelegate.showOnboarding()` passes a closure that closes `onboardingWindow` via the stored reference (NOT title-based lookup).
 - **`PopupWindowController.swift`** — Full-screen overlay window. Stores `keyMonitor: Any?`, calls `NSEvent.removeMonitor` on dismiss (leak fix).
 - **`FullScreenPopupView.swift`** — Shows real event data from `CalendarManager`. "Join Meeting" + "Copy Link" + "Dismiss [ESC]" buttons. "Copy Link" only shown when `event.meetingURL != nil`.
 - **`STYLE-GUIDE.md`** — Visual style guide: colour palette, typography, spacing, button styles, tooltip pattern, animation rules. Keep in sync when new patterns are introduced.
@@ -31,7 +31,7 @@ NSApp.setActivationPolicy(.regular)
 // ... create and show window ...
 NSApp.activate(ignoringOtherApps: true)
 ```
-Use `NSHostingController` (not `NSHostingView`) when hosting SwiftUI in AppKit windows — more reliable.
+Use `NSHostingController` for **titled/windowed** views (e.g. onboarding, settings). Use `NSHostingView` for **borderless/fullscreen overlay** windows — `NSHostingController` defaults to `sizingOptions = .preferredContentSize` which collapses a borderless window to its SwiftUI intrinsic size.
 
 ### @Observable and Computed Properties
 `@Observable` only instruments **stored** properties. If you back a property with UserDefaults, use a stored `var` with `didSet`, not a computed property:
@@ -135,17 +135,19 @@ SwiftLint config: `.swiftlint.yml` — only `force_cast`, `force_try`, `force_un
 - **F1: Calendar sync speed fix** — complete. `startMonitoring()` now calls `store.reset()` + `loadCalendars()` + `fetchEvents()` every 5 s. `ContentView` also got a 5 s ticker (same pattern as `MenuBarLabelView`) to force re-renders — `@Observable` propagation to `MenuBarExtra` window content is unreliable on macOS 26.
 - **F2: Distribution tooling** — deferred to `DISTRIBUTION-PLAN.md`.
 
-## Milestone 4 — In Progress
+## Milestone 4 — Complete
 
-### Completed
-- **F1: Copy meeting link** — clipboard icon button in dropdown (with hover highlight + 0.4 s pressed-state feedback via `CopyIconButton`); "Copy Link" button in popup between "Join Meeting" and "Dismiss". `TooltipLabel` shared view for both title and button tooltips ("copy meeting url" on clipboard button).
-- **F2: Ongoing event shimmer** — `eventRow()` extracted to `EventRowView` struct. `TimelineView` drives a `LinearGradient` shimmer (`primary → orange → primary`) sweeping left-to-right over the title text every 2.5 s. No `withAnimation` → no container jitter.
-- **Bonus fix: `● Now` menu bar label** — `menuBarLabelString()` detects ongoing events (`startDate ≤ now < endDate`) and returns `● Now [· title [· range]]` instead of the stale `0m` countdown.
-- **Bonus fix: `calendarItemIdentifier`** — ForEach now uses `\.calendarItemIdentifier` (non-optional) instead of `\.eventIdentifier` (nil-able), fixing view-identity collisions and state bleed between rows.
+- **F1: Copy meeting link** — clipboard icon button in dropdown + "Copy Link" in popup. `CopyIconButton` with 0.4 s pressed-state feedback. `TooltipLabel` shared component.
+- **F2: Ongoing event shimmer** — `EventRowView` struct with `TimelineView`-driven `LinearGradient` shimmer. No `withAnimation` → no container jitter.
+- **F3: Popup button improvements** — "Dismiss [ESC]", padding 28/14, `.contentShape` inside label for full hit area.
+- **F4: Maintenance** — `AppStyle.swift` style tokens (Color + Font), `dismissButton` dedup, unit tests for pure functions, `OnboardingView` debug cruft removed (callback-based close), incomplete AppStyle adoption finished.
+- **Bonus: `● Now` menu bar label** — ongoing events show `● Now` instead of stale `0m` countdown.
+- **Bonus: `calendarItemIdentifier`** — ForEach uses non-optional ID, fixes view-identity collisions.
 
-### Pending
-- **F3: Popup button improvements** — "Dismiss [ESC]", padding 28/14, `.contentShape`.
-- **F4: Maintenance** — fix SettingsLink, NSHostingController swap, deduplicate Dismiss, unit tests, AppStyle tokens.
+### Known limitations (see PLAN-5.md for fixes)
+- Two independent `PopupWindowController` instances (AppDelegate + ContentView).
+- `requestAccess()` failure is silently swallowed.
+- `ContentView.swift` has 6 types; candidate for splitting in M5.
 
 ## Bundle ID
 `ohwow.LightsUp`

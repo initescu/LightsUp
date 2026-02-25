@@ -12,6 +12,7 @@ struct OnboardingView: View {
     @State private var step = 0
 
     let calendarManager: CalendarManager
+    let onComplete: () -> Void
 
     private let totalSteps = 4
 
@@ -61,7 +62,7 @@ struct OnboardingView: View {
                 }
             }
             .buttonStyle(.plain)
-            .font(.system(.body, design: .monospaced).weight(.semibold))
+            .font(.appBodyBold)
             .foregroundStyle(Color.appAccent)
         }
     }
@@ -78,7 +79,7 @@ struct OnboardingView: View {
                 .font(.system(size: 32, weight: .bold, design: .monospaced))
 
             Text("Never miss a meeting again.")
-                .font(.system(.title3, design: .monospaced))
+                .font(.appTitle3)
                 .foregroundStyle(.secondary)
         }
         .padding(48)
@@ -87,7 +88,7 @@ struct OnboardingView: View {
     private var whatItDoesView: some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("How it works")
-                .font(.system(.title2, design: .monospaced, weight: .bold))
+                .font(.appTitleBold)
 
             VStack(alignment: .leading, spacing: 14) {
                 featureRow(icon: "calendar", text: "Reads your Apple Calendar")
@@ -109,10 +110,10 @@ struct OnboardingView: View {
                 .foregroundStyle(Color.appAccent)
 
             Text("Calendar Access")
-                .font(.system(.title2, design: .monospaced, weight: .bold))
+                .font(.appTitleBold)
 
             Text("LightsUp needs read access to detect upcoming meetings.\nYour data stays on-device.")
-                .font(.system(.callout, design: .monospaced))
+                .font(.appCallout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
@@ -135,7 +136,7 @@ struct OnboardingView: View {
                     .font(.appBody)
                     .foregroundStyle(.red)
                 Text("System Settings → Privacy & Security → Calendars")
-                    .font(.system(.caption, design: .monospaced))
+                    .font(.appCaption)
                     .foregroundStyle(.secondary)
             }
 
@@ -143,7 +144,7 @@ struct OnboardingView: View {
             Button("Grant Calendar Access") {
                 Task { await calendarManager.requestAccess() }
             }
-            .font(.system(.body, design: .monospaced).weight(.semibold))
+            .font(.appBodyBold)
             .foregroundStyle(.black)
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
@@ -163,7 +164,7 @@ struct OnboardingView: View {
                 .font(.system(size: 28, weight: .bold, design: .monospaced))
 
             Text("LightsUp lives in your menu bar.\nClick the lightbulb any time to see upcoming meetings.")
-                .font(.system(.callout, design: .monospaced))
+                .font(.appCallout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
@@ -181,21 +182,8 @@ struct OnboardingView: View {
     }
 
     private func complete() {
-        print("🔍 complete() called")
-        print("🔍 Setting hasCompletedOnboarding to true")
         hasCompletedOnboarding = true
-        
-        // Also set it directly in UserDefaults as a backup
-        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-        UserDefaults.standard.synchronize()
-        
-        print("🔍 UserDefaults value: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
-        
         NSApp.setActivationPolicy(.accessory)
-        
-        // Close the onboarding window
-        if let window = NSApp.windows.first(where: { $0.title == "Welcome to LightsUp" }) {
-            window.close()
-        }
+        onComplete()
     }
 }

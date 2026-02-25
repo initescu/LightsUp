@@ -25,7 +25,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func showOnboarding() {
-        let contentView = OnboardingView(calendarManager: calendarManager)
+        let contentView = OnboardingView(calendarManager: calendarManager) { [weak self] in
+            self?.onboardingWindow?.close()
+            self?.onboardingWindow = nil
+        }
         let hostingController = NSHostingController(rootView: contentView)
         
         let window = NSWindow(

@@ -60,7 +60,7 @@ struct FullScreenPopupView: View {
                                 onDismiss()
                             } label: {
                                 Text("Join Meeting")
-                                    .font(.system(.body, design: .monospaced).weight(.semibold))
+                                    .font(.appBodyBold)
                                     .foregroundStyle(.black)
                                     .padding(.horizontal, 28)
                                     .padding(.vertical, 14)
@@ -99,7 +99,7 @@ struct FullScreenPopupView: View {
                         .font(.system(size: 48))
                         .foregroundStyle(.white.opacity(0.5))
                     Text("No upcoming events")
-                        .font(.system(.title, design: .monospaced))
+                        .font(.appTitle)
                         .foregroundStyle(Color.appPopupText)
                     dismissButton
                 }
