@@ -39,8 +39,7 @@ final class PopupWindowController: NSObject {
         win.isOpaque = false
         win.backgroundColor = .clear
         win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        let hostingController = NSHostingController(rootView: popupView)
-        win.contentViewController = hostingController
+        win.contentView = NSHostingView(rootView: popupView)
         win.makeKeyAndOrderFront(nil)
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in

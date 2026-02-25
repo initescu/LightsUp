@@ -84,7 +84,7 @@ struct CopyIconButton: View {
             }
         } label: {
             Image(systemName: "doc.on.clipboard")
-                .foregroundStyle(.appAccent)
+                .foregroundStyle(Color.appAccent)
         }
         .buttonStyle(IconButtonStyle(isActive: justCopied))
         .onHover {
@@ -172,7 +172,7 @@ struct EventRowView: View {
                         NSWorkspace.shared.open(url)
                     } label: {
                         Image(systemName: "arrow.up.right.square")
-                            .foregroundStyle(.appAccent)
+                            .foregroundStyle(Color.appAccent)
                     }
                     .buttonStyle(IconButtonStyle())
 
@@ -262,7 +262,7 @@ struct ContentView: View {
             .uppercased()
         return Text("\(label)  \(datePart)")
             .font(.appCaptionBold)
-            .foregroundStyle(.appAccent)
+            .foregroundStyle(Color.appAccent)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
     }
@@ -292,7 +292,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .font(.appCaption)
-            .foregroundStyle(.appAccent)
+            .foregroundStyle(Color.appAccent)
         }
         .frame(maxWidth: .infinity)
         .padding()
@@ -313,7 +313,7 @@ struct ContentView: View {
         HStack(spacing: 0) {
             Button("Test Popup") { popup?.show() }
                 .font(.appBody)
-                .foregroundStyle(.appAccent)
+                .foregroundStyle(Color.appAccent)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -321,15 +321,14 @@ struct ContentView: View {
 
             Divider().frame(height: 20)
 
-            Button("Settings...") {
-                NSApp.activate(ignoringOtherApps: true)
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            SettingsLink {
+                Text("Settings...")
+                    .font(.appBody)
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
             }
-            .font(.appBody)
-            .foregroundStyle(.primary)
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
             .buttonStyle(MenuRowStyle())
         }
     }

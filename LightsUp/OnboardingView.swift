@@ -62,7 +62,7 @@ struct OnboardingView: View {
             }
             .buttonStyle(.plain)
             .font(.system(.body, design: .monospaced).weight(.semibold))
-            .foregroundStyle(.appAccent)
+            .foregroundStyle(Color.appAccent)
         }
     }
 
@@ -72,7 +72,7 @@ struct OnboardingView: View {
         VStack(spacing: 16) {
             Image(systemName: "lightbulb.fill")
                 .font(.system(size: 52))
-                .foregroundStyle(.appAccent)
+                .foregroundStyle(Color.appAccent)
 
             Text("LightsUp")
                 .font(.system(size: 32, weight: .bold, design: .monospaced))
@@ -106,7 +106,7 @@ struct OnboardingView: View {
         VStack(spacing: 20) {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.system(size: 44))
-                .foregroundStyle(.appAccent)
+                .foregroundStyle(Color.appAccent)
 
             Text("Calendar Access")
                 .font(.system(.title2, design: .monospaced, weight: .bold))
@@ -173,7 +173,7 @@ struct OnboardingView: View {
     private func featureRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(.appAccent)
+                .foregroundStyle(Color.appAccent)
                 .frame(width: 20)
             Text(text)
                 .font(.appBody)

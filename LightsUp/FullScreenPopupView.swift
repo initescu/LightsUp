@@ -14,7 +14,7 @@ struct FullScreenPopupView: View {
         Button { onDismiss() } label: {
             Text("Dismiss [ESC]")
                 .font(.appBody)
-                .foregroundStyle(.appPopupText)
+                .foregroundStyle(Color.appPopupText)
                 .padding(.horizontal, 28)
                 .padding(.vertical, 14)
                 .contentShape(RoundedRectangle(cornerRadius: 8))
@@ -37,7 +37,7 @@ struct FullScreenPopupView: View {
                     // Calendar label
                     Text(event.calendar.title.uppercased())
                         .font(.appCaptionBold)
-                        .foregroundStyle(.appAccent)
+                        .foregroundStyle(Color.appAccent)
                         .tracking(2)
 
                     // Event info
@@ -49,7 +49,7 @@ struct FullScreenPopupView: View {
 
                         Text("\(event.startDate.formatted(date: .omitted, time: .shortened)) – \(event.endDate.formatted(date: .omitted, time: .shortened))")
                             .font(.appTitle2)
-                            .foregroundStyle(.appPopupText)
+                            .foregroundStyle(Color.appPopupText)
                     }
 
                     // Actions
@@ -77,7 +77,7 @@ struct FullScreenPopupView: View {
                             } label: {
                                 Text("Copy Link")
                                     .font(.appBody)
-                                    .foregroundStyle(.appPopupText)
+                                    .foregroundStyle(Color.appPopupText)
                                     .padding(.horizontal, 28)
                                     .padding(.vertical, 14)
                                     .contentShape(RoundedRectangle(cornerRadius: 8))
@@ -100,7 +100,7 @@ struct FullScreenPopupView: View {
                         .foregroundStyle(.white.opacity(0.5))
                     Text("No upcoming events")
                         .font(.system(.title, design: .monospaced))
-                        .foregroundStyle(.appPopupText)
+                        .foregroundStyle(Color.appPopupText)
                     dismissButton
                 }
                 .padding(48)
