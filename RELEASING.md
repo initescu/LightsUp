@@ -1,38 +1,27 @@
 # Releasing LightsUp
 
 ## Prerequisites
-- Repo cloned locally, on `main` with a clean working tree
+- macOS 26 (Tahoe) — must build on the same OS version the app targets
 - Xcode installed, `xcodebuild` available in PATH
+- `gh` CLI installed and authenticated (for `--publish`)
 
 ## Release steps
 
-### Option A — Automated via GitHub Actions (requires macOS 26 runner)
-
-1. Update `MARKETING_VERSION` in Xcode if needed
-2. Commit and push to `main`
-3. Tag and push:
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-4. GitHub Actions triggers, builds the DMG, and creates a GitHub Release automatically.
-5. The release asset (`LightsUp-1.0.0.dmg`) appears under **Releases** on GitHub.
-
-> **Note:** The workflow uses `macos-latest`. If GitHub Actions doesn't yet have a macOS 26
-> runner, the build will fail. Use Option B as a fallback.
-
-### Option B — Local build + manual upload
+### Build only
 
 ```bash
 bash scripts/build-release.sh 1.0.0
 ```
 
-This produces `build/LightsUp-1.0.0.dmg`. Upload it manually via:
+Produces `build/LightsUp-1.0.0.dmg`. The script builds, signs (ad-hoc with entitlements), verifies the signature, and packages the DMG.
+
+### Build + publish to GitHub Releases
+
 ```bash
-gh release create v1.0.0 build/LightsUp-1.0.0.dmg \
-  --title "LightsUp 1.0.0" \
-  --notes "See RELEASING.md for install instructions."
+bash scripts/build-release.sh 1.0.0 --publish
 ```
+
+Same as above, plus tags the commit `v1.0.0` and creates a GitHub Release with the DMG attached.
 
 ---
 
@@ -55,10 +44,8 @@ gh release create v1.0.0 build/LightsUp-1.0.0.dmg \
 Once a paid Apple Developer Program membership ($99/year) is active:
 
 1. Obtain a **Developer ID Application** certificate from Apple
-2. Export it and store as `APPLE_CERT_BASE64` + `APPLE_CERT_PASSWORD` in GitHub Secrets
-3. Add `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD` secrets for `notarytool`
-4. Update `scripts/build-release.sh` and the workflow to:
+2. Update `scripts/build-release.sh` to:
    - Sign with the real Developer ID cert instead of `--sign -`
    - Run `xcrun notarytool submit … --wait`
    - Run `xcrun stapler staple …`
-5. With notarization, Gatekeeper passes silently — no right-click needed
+3. With notarization, Gatekeeper passes silently — no bypass needed
