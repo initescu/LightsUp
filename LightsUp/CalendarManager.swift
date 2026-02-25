@@ -44,8 +44,11 @@ final class CalendarManager {
     func requestAccess() async {
         do {
             _ = try await store.requestFullAccessToEvents()
-        } catch {}
+        } catch {
+            print("[LightsUp] requestFullAccessToEvents failed: \(error)")
+        }
         authorizationStatus = EKEventStore.authorizationStatus(for: .event)
+        print("[LightsUp] authorizationStatus after request: \(authorizationStatus.rawValue)")
         if authorizationStatus == .fullAccess {
             loadCalendars()
             fetchEvents()
