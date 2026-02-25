@@ -23,12 +23,20 @@ struct SettingsView: View {
             Divider()
 
             if calendarManager.allCalendars.isEmpty {
-                Text("No calendars found.\nGrant calendar access first.")
+                VStack(spacing: 12) {
+                    Text("No calendars found.\nGrant calendar access first.")
+                        .font(.appBody)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("Grant Calendar Access") {
+                        Task { await calendarManager.requestAccess() }
+                    }
                     .font(.appBody)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
+                    .foregroundStyle(Color.appAccent)
+                    .buttonStyle(.plain)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
             } else {
                 List(calendarManager.allCalendars, id: \.calendarIdentifier) { calendar in
                     calendarRow(calendar)

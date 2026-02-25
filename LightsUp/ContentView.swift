@@ -201,6 +201,8 @@ struct ContentView: View {
             mainContent
             Divider()
             bottomBar
+            Divider()
+            quitButton
         }
         .frame(width: 280)
         .onAppear {
@@ -299,7 +301,7 @@ struct ContentView: View {
     }
 
     private var accessPromptView: some View {
-        Text("Open the menu bar icon\nand grant calendar access.")
+        Text("Open Settings and\ngrant calendar access.")
             .font(.appBody)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
@@ -311,13 +313,15 @@ struct ContentView: View {
 
     private var bottomBar: some View {
         HStack(spacing: 0) {
-            Button("Test Popup") { popup?.show() }
-                .font(.appBody)
-                .foregroundStyle(Color.appAccent)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .buttonStyle(MenuRowStyle())
+            Button { popup?.show() } label: {
+                Text("Test Popup")
+                    .font(.appBody)
+                    .foregroundStyle(Color.appAccent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
+            .buttonStyle(MenuRowStyle())
 
             Divider().frame(height: 20)
 
@@ -331,5 +335,19 @@ struct ContentView: View {
             }
             .buttonStyle(MenuRowStyle())
         }
+    }
+
+    private var quitButton: some View {
+        Button {
+            NSApplication.shared.terminate(nil)
+        } label: {
+            Text("Quit LightsUp")
+                .font(.appBody)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+        }
+        .buttonStyle(MenuRowStyle())
     }
 }

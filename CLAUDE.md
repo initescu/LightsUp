@@ -15,8 +15,8 @@ macOS 26 (Tahoe) menu bar app that shows upcoming calendar events. LSUIElement b
 - **`CalendarManager.swift`** — `@Observable` class. Stored `var enabledCalendarIDs: Set<String>` with `didSet` (NOT computed — `@Observable` only tracks stored properties). Fetches today's and tomorrow's non-allDay events for enabled calendars. Polling timer: 5 s. `observeStoreChanges()` calls `store.reset()` then `loadCalendars()` + `fetchEvents()` on `.EKEventStoreChanged`.
 - **`MenuBarFormat.swift`** — `MenuBarFormat` enum (compact/medium/large) + `menuBarLabelString()` and `countdownString()` pure functions. `@AppStorage("menuBarFormat")` key shared between label view and settings.
 - **`MenuBarLabelView.swift`** — Menu bar label view. `@AppStorage("menuBarFormat")` drives format. 30 s `Timer.publish` ticker refreshes countdown. Requires `import Combine` for `autoconnect()`. Passed via `label:` closure in `MenuBarExtra` — requires `.environment(calendarManager)` explicitly (label is a separate view tree from the content).
-- **`ContentView.swift`** — Menu bar dropdown. Shows events grouped TODAY/TOMORROW. Contains `MenuRowStyle`, `IconButtonStyle`, `CopyIconButton`, `TooltipLabel`, and `EventRowView` (standalone struct — required for `@State`-based animations). Uses `calendarItemIdentifier` (not `eventIdentifier`) as ForEach ID — `eventIdentifier` is `String!` and can be nil, causing view identity collisions. Settings button uses `SettingsLink` — on macOS 26, `NSApp.sendAction(Selector(("showSettingsWindow:")))` is blocked at runtime.
-- **`SettingsView.swift`** — Calendar toggle list + Menu Bar format picker + Launch at Login toggle. Launch at Login uses `@State private var launchAtLogin` (NOT a `Binding` with `get/set` — `SMAppService.mainApp.status` is not SwiftUI-tracked, so the toggle won't visually update without `@State`). `onChange` calls `SMAppService.mainApp.register/unregister`. No `.onAppear { NSApp.activate() }` — `SettingsLink` handles activation.
+- **`ContentView.swift`** — Menu bar dropdown. Shows events grouped TODAY/TOMORROW. Contains `MenuRowStyle`, `IconButtonStyle`, `CopyIconButton`, `TooltipLabel`, and `EventRowView` (standalone struct — required for `@State`-based animations). Uses `calendarItemIdentifier` (not `eventIdentifier`) as ForEach ID — `eventIdentifier` is `String!` and can be nil, causing view identity collisions. Bottom bar: Test Popup | Settings... (via `SettingsLink`) + Quit LightsUp row. All bottom bar buttons use `Button { } label: { ... }` form with frame/padding inside the label so `MenuRowStyle` hover covers the full area.
+- **`SettingsView.swift`** — Calendar toggle list + Menu Bar format picker + Launch at Login toggle + "Grant Calendar Access" button (shown when `allCalendars` is empty — calls `calendarManager.requestAccess()` to trigger the TCC dialog). Launch at Login uses `@State private var launchAtLogin` (NOT a `Binding` with `get/set` — `SMAppService.mainApp.status` is not SwiftUI-tracked, so the toggle won't visually update without `@State`). `onChange` calls `SMAppService.mainApp.register/unregister`. No `.onAppear { NSApp.activate() }` — `SettingsLink` handles activation.
 - **`OnboardingView.swift`** — 4-step flow. Takes `onComplete: () -> Void` callback — called by `complete()` which sets `hasCompletedOnboarding = true`, calls `NSApp.setActivationPolicy(.accessory)`, then fires the callback. `AppDelegate.showOnboarding()` passes a closure that closes `onboardingWindow` via the stored reference (NOT title-based lookup).
 - **`PopupWindowController.swift`** — Full-screen overlay window. Stores `keyMonitor: Any?`, calls `NSEvent.removeMonitor` on dismiss (leak fix).
 - **`FullScreenPopupView.swift`** — Shows real event data from `CalendarManager`. "Join Meeting" + "Copy Link" + "Dismiss [ESC]" buttons. "Copy Link" only shown when `event.meetingURL != nil`.
@@ -104,6 +104,24 @@ When an overlay tooltip is attached to a small view (e.g. an icon button ~24px w
 }
 ```
 
+### Custom ButtonStyle — Frame/Padding Must Be Inside the Label
+`ButtonStyle.makeBody` receives `configuration.label`, which is the button's **label content only**. Modifiers like `.frame()` or `.padding()` applied *outside* the button are not part of `configuration.label` — the hover background will only cover the text, not the full row. Always use `Button { } label: { ... }` form and place frame/padding inside the label closure:
+```swift
+// WRONG — hover only covers the text
+Button("Quit") { ... }
+    .frame(maxWidth: .infinity)
+    .padding(.horizontal, 12)
+    .buttonStyle(MenuRowStyle())
+
+// CORRECT — hover covers the full padded area
+Button { ... } label: {
+    Text("Quit")
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 12)
+}
+.buttonStyle(MenuRowStyle())
+```
+
 ## Build Settings (project.pbxproj, both Debug and Release)
 - `ENABLE_APP_SANDBOX = NO`
 - `ENABLE_HARDENED_RUNTIME = YES`
@@ -146,7 +164,6 @@ SwiftLint config: `.swiftlint.yml` — only `force_cast`, `force_try`, `force_un
 
 ### Known limitations (see PLAN-5.md for fixes)
 - Two independent `PopupWindowController` instances (AppDelegate + ContentView).
-- `requestAccess()` failure is silently swallowed.
 - `ContentView.swift` has 6 types; candidate for splitting in M5.
 
 ## Bundle ID
