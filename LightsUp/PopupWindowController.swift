@@ -38,6 +38,8 @@ final class PopupWindowController: NSObject {
         win.level = .screenSaver
         win.isOpaque = false
         win.backgroundColor = .clear
+        win.isReleasedWhenClosed = false
+        win.isReleasedWhenClosed = false
         win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         win.contentView = NSHostingView(rootView: popupView)
         win.makeKeyAndOrderFront(nil)
@@ -58,7 +60,7 @@ final class PopupWindowController: NSObject {
             NSEvent.removeMonitor(monitor)
             keyMonitor = nil
         }
-        window?.orderOut(nil)
+        window?.close()
         window = nil
     }
 }

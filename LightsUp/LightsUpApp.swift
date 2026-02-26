@@ -7,17 +7,32 @@ import AppKit
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    static private(set) var shared: AppDelegate?
     var onboardingWindow: NSWindow?
     let calendarManager = CalendarManager()
     var popupController: PopupWindowController?
-    
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Self.shared = self
         popupController = PopupWindowController(calendarManager: calendarManager)
         
         calendarManager.onEventStart = { [weak self] _ in
             self?.popupController?.show()
         }
-        
+
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.willSleepNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.popupController?.dismiss()
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.screensDidSleepNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.popupController?.dismiss()
+        }
+
         if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
             NSApp.setActivationPolicy(.regular)
             showOnboarding()

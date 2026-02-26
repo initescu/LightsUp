@@ -191,7 +191,6 @@ struct EventRowView: View {
 
 struct ContentView: View {
     @Environment(CalendarManager.self) private var calendarManager
-    @State private var popup: PopupWindowController?
     @State private var now: Date = Date()
 
     private let ticker = Timer.publish(every: 5, tolerance: 1, on: .main, in: .common).autoconnect()
@@ -207,7 +206,6 @@ struct ContentView: View {
         .frame(width: 280)
         .onAppear {
             calendarManager.fetchEvents()
-            popup = PopupWindowController(calendarManager: calendarManager)
         }
         .onReceive(ticker) { self.now = $0 }
     }
@@ -313,7 +311,9 @@ struct ContentView: View {
 
     private var bottomBar: some View {
         HStack(spacing: 0) {
-            Button { popup?.show() } label: {
+            Button {
+                AppDelegate.shared?.popupController?.show()
+            } label: {
                 Text("Test Popup")
                     .font(.appBody)
                     .foregroundStyle(Color.appAccent)
