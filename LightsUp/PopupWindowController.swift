@@ -9,6 +9,10 @@ import SwiftUI
 
 final class PopupWindowController: NSObject {
 
+    private class KeyableWindow: NSWindow {
+        override var canBecomeKey: Bool { true }
+    }
+
     private var window: NSWindow?
     private var keyMonitor: Any?
     private weak var calendarManager: CalendarManager?
@@ -28,7 +32,7 @@ final class PopupWindowController: NSObject {
             self?.dismiss()
         }
 
-        let win = NSWindow(
+        let win = KeyableWindow(
             contentRect: screen.frame,
             styleMask: .borderless,
             backing: .buffered,
@@ -38,7 +42,6 @@ final class PopupWindowController: NSObject {
         win.level = .screenSaver
         win.isOpaque = false
         win.backgroundColor = .clear
-        win.isReleasedWhenClosed = false
         win.isReleasedWhenClosed = false
         win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         win.contentView = NSHostingView(rootView: popupView)

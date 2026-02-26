@@ -24,13 +24,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forName: NSWorkspace.willSleepNotification,
             object: nil, queue: .main
         ) { [weak self] _ in
+            self?.calendarManager.setSleeping(true)
             self?.popupController?.dismiss()
         }
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.screensDidSleepNotification,
             object: nil, queue: .main
         ) { [weak self] _ in
+            self?.calendarManager.setSleeping(true)
             self?.popupController?.dismiss()
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.calendarManager.setSleeping(false)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                self?.calendarManager.refreshAndCheckMissedEvents()
+            }
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.screensDidWakeNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.calendarManager.setSleeping(false)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                self?.calendarManager.refreshAndCheckMissedEvents()
+            }
         }
 
         if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {

@@ -23,6 +23,8 @@ final class CalendarManager {
 
     var onEventStart: ((EKEvent) -> Void)?
 
+    private(set) var isSleeping = false
+
     private let store = EKEventStore()
     private var monitorTimer: Timer?
     private var lastCheckedEventIDs = Set<String>()
@@ -39,6 +41,10 @@ final class CalendarManager {
         }
         observeStoreChanges()
         startMonitoring()
+    }
+
+    func setSleeping(_ sleeping: Bool) {
+        isSleeping = sleeping
     }
 
     func requestAccess() async {
@@ -85,6 +91,22 @@ final class CalendarManager {
 
         todayEvents = all.filter { $0.startDate < startOfTomorrow && $0.endDate > now }
         tomorrowEvents = all.filter { $0.startDate >= startOfTomorrow }
+        pruneCheckedEventIDs()
+    }
+
+    func refreshAndCheckMissedEvents() {
+        store.reset()
+        loadCalendars()
+        fetchEvents()
+        guard authorizationStatus == .fullAccess else { return }
+        let now = Date()
+        for event in todayEvents {
+            guard let eventID = event.eventIdentifier else { continue }
+            if event.startDate <= now && !lastCheckedEventIDs.contains(eventID) {
+                onEventStart?(event)
+                lastCheckedEventIDs.insert(eventID)
+            }
+        }
     }
 
     func nearestUpcomingEvent() -> EKEvent? {
@@ -128,8 +150,13 @@ final class CalendarManager {
         }
     }
 
+    private func pruneCheckedEventIDs() {
+        let currentIDs = Set((todayEvents + tomorrowEvents).compactMap(\.eventIdentifier))
+        lastCheckedEventIDs.formIntersection(currentIDs)
+    }
+
     private func checkForEventStarts() {
-        guard authorizationStatus == .fullAccess else { return }
+        guard authorizationStatus == .fullAccess, !isSleeping else { return }
 
         let now = Date()
 
