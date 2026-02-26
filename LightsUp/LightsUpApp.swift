@@ -6,11 +6,13 @@
 import AppKit
 import SwiftUI
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     static private(set) var shared: AppDelegate?
     var onboardingWindow: NSWindow?
+    var settingsWindow: NSWindow?
     let calendarManager = CalendarManager()
     var popupController: PopupWindowController?
+    var allowTermination = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Self.shared = self
@@ -30,6 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.screensDidSleepNotification,
             object: nil, queue: .main
+            
         ) { [weak self] _ in
             self?.calendarManager.setSleeping(true)
             self?.popupController?.dismiss()
@@ -59,6 +62,55 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    func showSettings() {
+        if let existing = settingsWindow {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let hostingController = NSHostingController(
+            rootView: SettingsView().environment(calendarManager)
+        )
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 320, height: 440),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "LightsUp Settings"
+        window.contentViewController = hostingController
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+
+        self.settingsWindow = window
+
+        NSApp.setActivationPolicy(.regular)
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if allowTermination {
+            return .terminateNow
+        }
+        settingsWindow?.close()
+        return .terminateCancel
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard let closingWindow = notification.object as? NSWindow else { return }
+        if closingWindow === settingsWindow {
+            settingsWindow = nil
+            if onboardingWindow == nil {
+                NSApp.setActivationPolicy(.accessory)
+            }
+        }
+    }
+
     func showOnboarding() {
         let contentView = OnboardingView(calendarManager: calendarManager) { [weak self] in
             self?.onboardingWindow?.close()
@@ -101,10 +153,5 @@ struct LightsUpApp: App {
                 .environment(calendarManager)
         }
         .menuBarExtraStyle(.window)
-
-        Settings {
-            SettingsView()
-                .environment(calendarManager)
-        }
     }
 }

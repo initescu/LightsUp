@@ -325,7 +325,9 @@ struct ContentView: View {
 
             Divider().frame(height: 20)
 
-            SettingsLink {
+            Button {
+                AppDelegate.shared?.showSettings()
+            } label: {
                 Text("Settings...")
                     .font(.appBody)
                     .foregroundStyle(.primary)
@@ -339,6 +341,7 @@ struct ContentView: View {
 
     private var quitButton: some View {
         Button {
+            AppDelegate.shared?.allowTermination = true
             NSApplication.shared.terminate(nil)
         } label: {
             Text("Quit LightsUp")
