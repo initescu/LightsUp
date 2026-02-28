@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="LightsUp/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="128" alt="LightsUp icon">
+</p>
+
 # LightsUp
 
 A native macOS menu bar app that makes missing meetings impossible.
@@ -73,6 +77,7 @@ LightsUp/
 - [x] Hover tooltips on truncated titles and action buttons
 - [x] First-launch onboarding with calendar permission request
 - [x] Settings window — calendar selection, menu bar format, launch at login
-- [ ] Popup button polish (Dismiss [ESC], larger hit areas)
-- [ ] Code maintenance (SettingsLink fix, style tokens, unit tests)
+- [x] Popup button polish (Dismiss [ESC], larger hit areas)
+- [x] Code maintenance (style tokens, unit tests)
+- [x] App icon
 - [ ] Notarization + distribution setup
